@@ -1132,15 +1132,24 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             scroll.UpdateLayout();
             if (scroll.Viewport.Height <= 0 || _blockViews[index].TranslatePoint(default, scroll) is not { } origin) return;
-            var height = _blockViews[index].Bounds.Height;
-            var shift = origin.Y < 0 || height >= scroll.Viewport.Height ? origin.Y
-                : Math.Max(0, origin.Y + height - scroll.Viewport.Height);
-            var target = Math.Clamp(scroll.Offset.Y + shift, 0, Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height));
+            var target = Math.Clamp(scroll.Offset.Y + RevealShiftDelta(origin.Y, _blockViews[index].Bounds.Height, scroll.Viewport.Height),
+                0, Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height));
             if (Math.Abs(target - scroll.Offset.Y) < .5) return;
             scroll.Offset = new Vector(scroll.Offset.X, target);
         }
         scroll.UpdateLayout();
     }
+
+    /// <summary>
+    /// 揭示块的滚动修正量：块顶在视口上方 → 回卷对齐块顶；块整体在视口下方 → 短块贴底、
+    /// 高块对齐顶（旧行为）；块顶已在视口内 → 0——就地点击/激活不挪视口。旧逻辑在最后一种
+    /// 形态仍会整体滚动（对齐块顶或为「露出底边」下滚），用户点击的位置在屏幕上被顶走，
+    /// 表现即「点一下，视图上移」。
+    /// </summary>
+    internal static double RevealShiftDelta(double originY, double height, double viewportHeight) =>
+        originY < 0 || originY >= viewportHeight
+            ? height >= viewportHeight ? originY : Math.Max(0, originY + height - viewportHeight)
+            : 0d;
 
     /// <summary>按模型建块视图：事件回调在下标漂移后仍正确——触发时重新解析模型当前下标。</summary>
     private Control BuildBlockView(MarkdownBlockModel model)

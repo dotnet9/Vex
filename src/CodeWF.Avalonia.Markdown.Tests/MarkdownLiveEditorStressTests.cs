@@ -4,9 +4,12 @@ using CodeWF.Avalonia.Markdown.Editor;
 using CodeWF.Avalonia.Markdown.Editor.Controls;
 using CodeWF.Avalonia.Markdown.Editor.Services;
 using CodeWF.Avalonia.Markdown.Editor.Controls.Wysiwyg;
+using CodeWF.Avalonia.Markdown.Controls;
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 using Xunit;
 
@@ -117,6 +120,53 @@ public sealed class MarkdownLiveEditorStressTests(AvaloniaPlatformFixture platfo
                 window.Close();
             }
         });
+    }
+
+    [Fact]
+    public void LongDocumentKeepsInstantEditorBlockHostVirtualized() => platform.Run(() =>
+    {
+        var document = string.Join("\n\n", Enumerable.Range(0, 200)
+            .Select(index => $"## Chapter {index}\n\nParagraph {index} remains editable."));
+        var view = new MarkdownLiveEditorView();
+        var window = new Window { Width = 600, Height = 400, Content = view };
+        window.Show();
+        try
+        {
+            view.SetText(document);
+            for (var pass = 0; pass < 30; pass++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+            }
+
+            var panel = view.GetVisualDescendants().OfType<WindowedStackPanel>()
+                .Single(candidate => candidate.EstimatedItemHeight == 55);
+            Assert.True(panel.EnableVirtualization);
+            Assert.True(panel.IsVirtualizing);
+            Assert.True(panel.ItemCount >= 400);
+            Assert.True(panel.RealizedItemCount < panel.ItemCount);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Theory]
+    [InlineData(-50, 300, 400, 0)]    // 块顶在视口上方、短块底边已入视口：回卷对齐块顶后无需再滚（旧行为一致）
+    [InlineData(-50, 500, 400, -50)]  // 块顶在视口上方、高块：对齐块顶（旧行为一致）
+    [InlineData(500, 200, 400, 300)]  // 块整体在视口下方、短块：贴底揭示（旧行为一致）
+    [InlineData(500, 800, 400, 500)]  // 块整体在视口下方、高块：对齐块顶（旧行为一致）
+    [InlineData(50, 100, 400, 0)]     // 块完全可见：不动（旧行为一致）
+    [InlineData(133, 418, 400, 0)]    // 块顶可见而底边越界：不再「对齐块顶」拽走点击位置（旧行为 133）
+    [InlineData(200, 300, 400, 0)]    // 块顶可见而底边越界、短块：不再为「露出底边」下滚（旧行为 100）
+    public void RevealShiftDelta_KeepsViewportWhenBlockTopVisible(double originY, double height, double viewport, double expected)
+    {
+        var shift = (double)typeof(MarkdownLiveEditorView)
+            .GetMethod("RevealShiftDelta", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(null, [originY, height, viewport])!;
+        Assert.Equal(expected, shift);
     }
 
     [Fact]

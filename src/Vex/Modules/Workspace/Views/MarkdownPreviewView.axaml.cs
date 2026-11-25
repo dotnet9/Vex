@@ -36,6 +36,7 @@ public partial class MarkdownPreviewView : UserControl
     private MarkdownViewer.MarkdownReadingPosition? _savedReadingPosition;
     private MarkdownViewer.MarkdownReadingPosition? _presentationReadingPosition;
     private string? _presentationReadingSource;
+    private bool? _renderedDiagramEditingEnabled;
     private bool _restoringScrollPosition;
     private int _appliedRefreshVersion;
     private int _appliedNavigationSequence;
@@ -175,15 +176,17 @@ public partial class MarkdownPreviewView : UserControl
 
     // 阅读与编辑对照共用这一个预览实例：IsReadingMode 翻转时库内两个图表开关
     // （MermaidEditing 渲染包装 + IsDiagramEditingEnabled 点击闸）由绑定一起换档，
-    // 但已渲染的图表块不会自行重建，这里补一次整篇重绘让编辑包装换上/换下。
-    // 只在窗格在场时做（经即时等隐藏布局回到编辑对照由 OnIsVisibleChanged 补一次），
-    // 演示态有自己的锚点链路且入退场都整篇换文档，也不在这里插手。
+    // 但已渲染的图表块不会自行重建，这里在实际形态变化时整篇重绘。
+    // 隐藏期间的形态变化不重绘，回到同一形态时直接复用已有控件树。
     private void ApplyDiagramEditingAffordance()
     {
         if (_viewModel?.IsPresenting == true || _viewModel?.IsPreviewVisible != true) return;
+        var editingEnabled = !IsReadingMode;
+        if (_renderedDiagramEditingEnabled == editingEnabled) return;
         // 切走前先把仍持有焦点的图表源码按保存/关闭同一条链路提交，重绘才不会丢掉未提交的编辑。
         CodeWF.Avalonia.Markdown.Mermaid.MermaidEditing.CommitPendingEdits(PreviewMarkdownViewer);
         PreviewMarkdownViewer.Rerender();
+        _renderedDiagramEditingEnabled = editingEnabled;
         QueueRestoreReadingPosition();
     }
 
@@ -521,8 +524,17 @@ public partial class MarkdownPreviewView : UserControl
         if (PreviewMarkdownViewer.TryGetSourceLineBounds(_viewModel.PreviewSourceLine, out var bounds)
             && PreviewMarkdownViewer.TranslatePoint(new Point(0, bounds.Top), PreviewScrollViewer) is { } target)
         {
-            var scrollableHeight = Math.Max(0d, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
-            PreviewScrollViewer.Offset = new Vector(0d, Math.Clamp(PreviewScrollViewer.Offset.Y + target.Y, 0d, scrollableHeight));
+            // 跟随不抢屏：目标行已在视口内（留边距）就不动视口。旧逻辑无条件把目标行吸到
+            // 视口顶，阅读中点任务框、提交图表改动等任何文本变化都会把视口拽向编辑器光标
+            // 当时所在的位置（表现即「点击后视图上移」）。
+            const double margin = 24d;
+            var viewport = PreviewScrollViewer.Viewport.Height;
+            if (target.Y >= margin && target.Y <= viewport - margin) return;
+            var scrollableHeight = Math.Max(0d, PreviewScrollViewer.Extent.Height - viewport);
+            var offset = target.Y < margin
+                ? PreviewScrollViewer.Offset.Y + target.Y - margin
+                : PreviewScrollViewer.Offset.Y + target.Y - viewport + margin;
+            PreviewScrollViewer.Offset = new Vector(0d, Math.Clamp(offset, 0d, scrollableHeight));
             return;
         }
 

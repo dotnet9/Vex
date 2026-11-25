@@ -132,10 +132,11 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableCodeBlockFolding), true);
 
     /// <summary>
-    /// 文档宿主的块虚拟化开关；关闭后所有块始终物化，可在异常场景退回非虚拟化宿主。
+    /// 文档宿主的块虚拟化开关；默认关闭，普通阅读始终全量量测与排列。
+    /// 仅在超长流式输出等明确需要窗口物化的场景显式开启。
     /// </summary>
     public static readonly StyledProperty<bool> EnableVirtualizationProperty =
-        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), true);
+        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), false);
 
     /// <summary>
     /// 启用虚拟化的最小块数量；低于该值时按普通面板渲染，避免小文档付出额外开销。
@@ -672,6 +673,8 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         TypographySizeProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
         ImageBasePathProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
         ImageSourceResolverProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
+        EnableVirtualizationProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
+        VirtualizationThresholdProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
         // 高亮 token 的颜色在生成时固定；代码背景资源变更也需重建，
         // 防止主题切换后仍保留与新底色相反的 token 配色。
         CodeBackgroundBrushProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
@@ -1269,7 +1272,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         {
             // 增量更新时当前快照仍是旧文档；从短节恢复全文须按新模型决定延迟创建。
             if (_virtualizingHost is { EnableVirtualization: true }
-                && ((documentBlockCount ?? _renderedModel.Blocks.Count) >= 200
+                && ((documentBlockCount ?? _renderedModel.Blocks.Count) >= Math.Max(1, VirtualizationThreshold)
                     || modelBlock.SyntaxBlock is FencedCodeBlock fenced && string.Equals(fenced.Info?.Trim(), "mermaid", StringComparison.OrdinalIgnoreCase)))
             {
                 var deferred = new DeferredMarkdownBlock(() => CreateBlockContent(modelBlock, markdown));

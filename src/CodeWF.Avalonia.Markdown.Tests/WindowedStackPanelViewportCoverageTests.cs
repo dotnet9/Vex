@@ -2,6 +2,7 @@ using CodeWF.Avalonia.Markdown.Tests;
 using CodeWF.Avalonia.Markdown.Controls;
 using global::Avalonia;
 using global::Avalonia.Controls;
+using global::Avalonia.Controls.Documents;
 using global::Avalonia.Controls.Presenters;
 using global::Avalonia.Controls.Templates;
 using global::Avalonia.Headless;
@@ -116,7 +117,11 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
               string.Join('\n', Enumerable.Range(0, 24).Select(row =>
                   $"| {index}-{row} | 较长单元格内容用于触发换行与重新量测 | value-{row} |"))
             : $"Paragraph {index} with enough text to keep the document virtualized and force deferred block creation.");
-        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
+        var viewer = new MarkdownViewer
+        {
+            Markdown = string.Join("\n\n", blocks),
+            EnableVirtualization = true
+        };
         var presenter = new ScrollContentPresenter { Content = viewer };
         var scroll = new ScrollViewer
         {
@@ -155,6 +160,126 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
             window.UpdateLayout();
             AssertViewportFullyRealized(panel, scroll);
             AssertViewportContentReady(panel, scroll);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Fact]
+    public void DefaultViewerKeepsEveryParagraphRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
+    {
+        var blocks = Enumerable.Range(0, 450)
+            .Select(index => $"Paragraph {index} is ordinary supported Markdown content.");
+        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
+        var presenter = new ScrollContentPresenter { Content = viewer };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 640, Height = 360, Content = scroll };
+        window.Show();
+        try
+        {
+            for (var pass = 0; pass < 20; pass++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+            }
+
+            var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
+            Assert.False(viewer.EnableVirtualization);
+            Assert.False(panel.IsVirtualizing);
+            Assert.Equal(450, panel.ItemCount);
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+
+            for (var index = 0; index < panel.ItemCount; index++)
+            {
+                Assert.NotNull(panel.GetRealizedItem(index));
+                Assert.True(panel.GetRealizedItem(index)!.DesiredSize.Height > 0);
+            }
+
+            var paragraph = Assert.IsAssignableFrom<SelectableTextBlock>(panel.GetRealizedItem(370));
+            Assert.Equal("Paragraph 370 is ordinary supported Markdown content.", paragraph.Inlines?.OfType<Run>().Single().Text);
+            Assert.True(panel.TryGetItemTop(370, out var paragraphTop));
+            scroll.Offset = new Vector(0, paragraphTop);
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            Assert.True(paragraphTop >= scroll.Offset.Y);
+            Assert.True(paragraphTop + paragraph.DesiredSize.Height <= scroll.Offset.Y + scroll.Viewport.Height);
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+
+            window.Width = 420;
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+            AssertViewportFullyRealized(panel, scroll);
+            AssertViewportContentReady(panel, scroll);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Fact]
+    public void ChangingVirtualizationAfterRenderRebuildsBlocksWithoutLosingContent() => platform.Run(() =>
+    {
+        var blocks = Enumerable.Range(0, 120).Select(index => $"Paragraph {index}");
+        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
+        var presenter = new ScrollContentPresenter { Content = viewer };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 640, Height = 360, Content = scroll };
+        window.Show();
+        try
+        {
+            for (var pass = 0; pass < 20; pass++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+            }
+
+            var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+
+            viewer.EnableVirtualization = true;
+            for (var pass = 0; pass < 20; pass++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+            }
+
+            Assert.True(panel.IsVirtualizing);
+            Assert.True(panel.RealizedItemCount < panel.ItemCount);
+            AssertViewportFullyRealized(panel, scroll);
+            AssertViewportContentReady(panel, scroll);
+
+            viewer.EnableVirtualization = false;
+            for (var pass = 0; pass < 20; pass++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+            }
+
+            Assert.False(panel.IsVirtualizing);
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+            var last = Assert.IsAssignableFrom<SelectableTextBlock>(panel.GetRealizedItem(119));
+            Assert.Equal("Paragraph 119", last.Inlines?.OfType<Run>().Single().Text);
         }
         finally
         {

@@ -80,10 +80,14 @@ public sealed class RepositoryMarkdownFixtureTests(AvaloniaPlatformFixture platf
     }
 
     [Fact]
-    public void ManualRepositoryDocumentKeepsViewportRealizedAcrossJumpAndResize() => platform.Run(() =>
+    public void ManualRepositoryDocumentKeepsViewportRealizedWhenVirtualizationIsExplicitlyEnabled() => platform.Run(() =>
     {
         var source = ReadFixture("docs/测试文档.md");
-        var viewer = new MarkdownViewer { Markdown = source };
+        var viewer = new MarkdownViewer
+        {
+            Markdown = source,
+            EnableVirtualization = true
+        };
         var presenter = new ScrollContentPresenter { Content = viewer };
         var scroll = new ScrollViewer
         {

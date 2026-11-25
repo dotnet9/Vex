@@ -473,7 +473,7 @@ internal static class RuntimeVerification
     }
 
     /// <summary>
-    /// 布局真值探针：大纲悬浮/坞设切换、正文列贴底对齐、阅读长文虚拟化空白。
+    /// 布局真值探针：大纲悬浮/坞设切换、正文列贴底对齐、阅读长文全量布局空白。
     /// 三类问题都以运行时几何为准（容器底边差、视口内未物化条目带），并留整窗截图。
     /// </summary>
     public static void RunLayout(string directory)
@@ -628,10 +628,15 @@ internal static class RuntimeVerification
             var outlinePanel = outlineView.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownOutlinePanel>("OutlinePanel")!;
             var outline = (ShellOutlineViewModel)outlineView.DataContext!;
             Wait(window, () => viewer.CurrentModel.Blocks.Count > 0 && outline.OutlineItems.Count > 0);
-            report.Add($"[read] blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} outlineRows={outline.OutlineItems.Count}");
+            report.Add($"[read] blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} outlineRows={outline.OutlineItems.Count} " +
+                $"virtualization={viewer.EnableVirtualization} realized={panel.RealizedItemCount}");
 
             var blanks = new List<string>();
             var stableFailures = new List<string>();
+            if (viewer.EnableVirtualization || panel.IsVirtualizing || panel.RealizedItemCount != panel.ItemCount)
+            {
+                stableFailures.Add("read-default-full-layout");
+            }
             void ProbeBlank(string tag)
             {
                 window.UpdateLayout();
@@ -669,6 +674,13 @@ internal static class RuntimeVerification
                 }
             }
 
+            void TakeOverScroll()
+            {
+                typeof(Modules.Workspace.Views.MarkdownPreviewView)
+                    .GetMethod("OnUserTakesOverScroll", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(preview, [preview, new global::Avalonia.Interactivity.RoutedEventArgs()]);
+            }
+
             // 大纲跳到宽行内代码区开头（复刻「从 5.1C 开始」的落点）。
             var wideRow = outlinePanel.Rows[Math.Min(48, outlinePanel.Rows.Count - 1)];
             outlinePanel.Navigate(wideRow);
@@ -682,6 +694,7 @@ internal static class RuntimeVerification
             }
 
             // 逐屏下滚：捕捉空白首次出现与最严重一步。
+            TakeOverScroll();
             string? worstStep = null;
             double worstBlank = 0;
             for (var step = 0; step < 24; step++)
@@ -717,6 +730,9 @@ internal static class RuntimeVerification
             var reopened = model.OpenPathAsync(fixturePath);
             Wait(window, () => reopened.IsCompleted);
             reopened.GetAwaiter().GetResult();
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            TakeOverScroll();
             for (var step = 0; step < 40; step++)
             {
                 scroll.Offset += new Vector(0, 320);
@@ -752,7 +768,12 @@ internal static class RuntimeVerification
             scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
             panel = viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().Single();
             Wait(window, () => viewer.CurrentModel.Blocks.Count > 0 && panel.ItemCount > 0);
-            report.Add($"[manual] path={manualDocumentPath} blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} bytes={new FileInfo(manualDocumentPath).Length}");
+            report.Add($"[manual] path={manualDocumentPath} blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} " +
+                $"bytes={new FileInfo(manualDocumentPath).Length} virtualization={viewer.EnableVirtualization} realized={panel.RealizedItemCount}");
+            if (viewer.EnableVirtualization || panel.IsVirtualizing || panel.RealizedItemCount != panel.ItemCount)
+            {
+                stableFailures.Add("manual-default-full-layout");
+            }
             foreach (var ratio in new[] { 0d, .03d, .11d, .23d, .37d, .49d, .61d, .73d, .84d, .93d, 1d })
             {
                 var maxOffset = Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height);
@@ -797,33 +818,60 @@ internal static class RuntimeVerification
 
         void SettleStable(Window target, int quietMilliseconds)
         {
-            // 等几何三要素（偏移、范围、面板总高）连续静默后再补一拍后台队列，锚点补偿链路才算收完。
-            var stable = 0d;
-            double lastOffset = -1, lastExtent = -1, lastDesired = -1;
-            Wait(target, () =>
+            var fullViewer = target.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().FirstOrDefault();
+            var fullPanel = fullViewer?.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
+            if (fullPanel is { IsVirtualizing: false, ItemCount: > 0 })
             {
-                var panelQuiet = true;
+                // 全量宿主没有估算窗口需要收敛；异步图片只会改变真实高度，不会留下未物化条带。
+                Wait(target, () =>
+                {
+                    fullViewer = target.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>().FirstOrDefault();
+                    fullPanel = fullViewer?.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
+                    return fullViewer is { CurrentModel.Blocks.Count: > 0 }
+                        && fullPanel is { IsVirtualizing: false }
+                        && fullPanel.ItemCount == fullViewer.CurrentModel.Blocks.Count
+                        && fullPanel.RealizedItemCount == fullPanel.ItemCount
+                        && fullPanel.IsItemMeasured(fullPanel.ItemCount - 1);
+                });
+                Dispatcher.UIThread.RunJobs();
+                target.UpdateLayout();
+                return;
+            }
+
+            // 虚拟化宿主仍需等真实条带高度与滚动几何连续静默，估算窗口才完成收敛。
+            var lastChange = Environment.TickCount64;
+            double lastOffset = -1, lastExtent = -1, lastDesired = -1;
+            try
+            {
+                Wait(target, () =>
+                {
+                    var previewPanel = target.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
+                    var desired = previewPanel?.DesiredSize.Height ?? -1;
+                    var scrollNow = target.GetVisualDescendants().OfType<ScrollViewer>()
+                        .OrderByDescending(control => control.Extent.Height - control.Viewport.Height).FirstOrDefault();
+                    var offset = scrollNow?.Offset.Y ?? -1;
+                    var extent = scrollNow?.Extent.Height ?? -1;
+                    var now = Environment.TickCount64;
+                    if (Math.Abs(offset - lastOffset) < .5 && Math.Abs(extent - lastExtent) < .5 && Math.Abs(desired - lastDesired) < .5)
+                    {
+                        return now - lastChange >= quietMilliseconds;
+                    }
+
+                    lastChange = now;
+                    lastOffset = offset;
+                    lastExtent = extent;
+                    lastDesired = desired;
+                    return false;
+                });
+            }
+            catch (TimeoutException exception)
+            {
                 var previewPanel = target.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
-                var desired = previewPanel?.DesiredSize.Height ?? -1;
-                var scrollNow = target.GetVisualDescendants().OfType<ScrollViewer>()
-                    .OrderByDescending(control => control.Extent.Height - control.Viewport.Height).FirstOrDefault();
-                var offset = scrollNow?.Offset.Y ?? -1;
-                var extent = scrollNow?.Extent.Height ?? -1;
-                if (Math.Abs(offset - lastOffset) < .5 && Math.Abs(extent - lastExtent) < .5 && Math.Abs(desired - lastDesired) < .5)
-                {
-                    stable += 30;
-                    panelQuiet = stable >= quietMilliseconds;
-                }
-                else
-                {
-                    stable = 0;
-                    panelQuiet = false;
-                }
-                lastOffset = offset;
-                lastExtent = extent;
-                lastDesired = desired;
-                return panelQuiet;
-            });
+                throw new TimeoutException(
+                    $"Layout did not settle for {quietMilliseconds} ms: offset={lastOffset:0}, extent={lastExtent:0}, " +
+                    $"desired={lastDesired:0}, quietFor={Environment.TickCount64 - lastChange} ms, " +
+                    $"items={previewPanel?.ItemCount}, realized={previewPanel?.RealizedItemCount}.", exception);
+            }
         }
     }
 

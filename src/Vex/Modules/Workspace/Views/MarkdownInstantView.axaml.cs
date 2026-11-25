@@ -24,10 +24,14 @@ public sealed partial class MarkdownInstantView : UserControl
         InitializeComponent();
         // Typora 行为：点击文档空白（未命中任何块编辑器）→ 光标落到最后一个段落块末尾。
         // Tunnel 从窗口根向下必经此处；点在块内时交还给块自己的 OnPointerPressed。
+        // 「落到末段」只覆盖点到正文末尾之下这一种 Typora 语义：正文列两侧留白、窗格上方
+        // 余白的点击必须就地忽略——否则拖动阅读后点到任何编辑器子树外的空白都会把光标
+        // 与视口拽到文档末段（表现即「点一下，视图上移」）。
         this.AddHandler(PointerPressedEvent, (_, e) =>
         {
             if (e.Source is Avalonia.Visual source
                 && source.GetVisualAncestors().OfType<MarkdownLiveEditorView>().Any()) return;
+            if (e.GetPosition(Editor).Y <= Editor.Bounds.Height) return;
             Editor.FocusLastParagraph();
         }, RoutingStrategies.Tunnel);
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
