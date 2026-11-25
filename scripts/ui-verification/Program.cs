@@ -1656,8 +1656,10 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         Console.WriteLine($"LONG-DOCUMENT-READING {round}: {anchor} -> {restored}");
         Check(anchor.BlockIndex == restored.BlockIndex && Math.Abs(anchor.BlockRatio - restored.BlockRatio) < .05,
             "Deep reading anchor survives content/map presentation and return");
-        // 全文 750+ 块，窗口化只该留住视口附近的百余块；上限按视口高度放宽，避免视口微调就误报。
-        Check(preview.RealizedBlockCount < 150, "Returning to the long document keeps offscreen blocks virtualized");
+        // 阅读默认全量布局（虚拟化显式开启才生效，虚拟化路径由库侧单测钉住）：
+        // 回到长文档后应整篇物化，物化数与模型块数一致。
+        Check(preview.RealizedBlockCount >= preview.CurrentModel.Blocks.Count,
+            "Returning to the long document keeps the full document materialized by default");
     }
     static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Descendants(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode node)
     { yield return node; foreach (var child in node.Children) foreach (var descendant in Descendants(child)) yield return descendant; }
