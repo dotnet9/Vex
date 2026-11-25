@@ -542,14 +542,13 @@ public class WindowedStackPanel : Panel
             width = 0;
         }
 
-        // 窗口判定用的是量测前的缓存条带高度；本轮把上方块量高后，后续条目的真实位置整体下移，
-        // 旧窗口判定会漏掉视口（含 overscan）内的条目——表现就是视口下沿空白、永远物化的重块
-        // 却画在更远处。这里用量测后的真实条带高度重放窗口判定，把漏掉的条目在下一轮补物化，
-        // 三轮封顶；收敛态（无漏）只多付一次 O(n) 走查。
+        // 窗口判定用的是量测前的缓存条带高度；本轮尺寸变化后，后续条目的真实位置会整体平移，
+        // 旧窗口判定可能漏掉视口（含 overscan）内的条目。这里用量测后的真实条带高度重放窗口判定，
+        // 把漏掉的条目在下一轮补物化，直到没有遗漏。每轮至少新物化一个条目，因此循环必然收敛。
         List<int>? missed = null;
         double y = 0;
         var maxWidth = 0d;
-        for (var attempt = 0; ; attempt++)
+        while (true)
         {
             var (windowTop, windowBottom) = ResolveVisibleWindow(virtualizing, availableSize);
             var isVisibleWindow = !double.IsNegativeInfinity(windowTop) && !double.IsPositiveInfinity(windowBottom);
@@ -609,12 +608,12 @@ public class WindowedStackPanel : Panel
                 y -= Spacing;
             }
 
-            if (!virtualizing || attempt >= 2)
+            if (!virtualizing)
             {
                 break;
             }
 
-            missed = CollectMissedViewportEntries(availableSize, missed);
+            missed = CollectMissedViewportEntries(availableSize);
             if (missed.Count == 0)
             {
                 break;
@@ -630,9 +629,9 @@ public class WindowedStackPanel : Panel
 
     /// <summary>
     /// 用量测后的真实条带高度重放视口窗口判定（窗口仍按滚动宿主当前偏移与视口加 overscan 计算），
-    /// 返回「与窗口相交却未物化」的条目下标；这些条目正是量测变高把窗口判定甩在身后的漏网块。
+    /// 返回「与窗口相交却未物化」的条目下标；这些条目正是尺寸变化把窗口判定甩在身后的漏网块。
     /// </summary>
-    private List<int> CollectMissedViewportEntries(Size availableSize, List<int>? alreadyForced)
+    private List<int> CollectMissedViewportEntries(Size availableSize)
     {
         var missed = new List<int>();
         var host = _subscribedScrollHost ?? ScrollHost;

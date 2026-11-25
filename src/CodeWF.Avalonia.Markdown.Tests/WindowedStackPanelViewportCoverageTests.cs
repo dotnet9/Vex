@@ -7,6 +7,7 @@ using global::Avalonia.Controls.Templates;
 using global::Avalonia.Headless;
 using global::Avalonia.Threading;
 using global::Avalonia.Media;
+using global::Avalonia.VisualTree;
 using Xunit;
 
 namespace CodeWF.Avalonia.Markdown.Tests;
@@ -58,6 +59,102 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
             window.UpdateLayout();
 
             AssertViewportFullyRealized(panel, scroll);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Fact]
+    public void OneMeasureConvergesWhenMultipleBandsCollapseInSuccession() => platform.Run(() =>
+    {
+        var presenter = new ScrollContentPresenter { Content = new Border { Height = 50_000 } };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 300, Height = 100, Content = scroll };
+        window.Show();
+        try
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            var panel = new WindowedStackPanel
+            {
+                ScrollHost = scroll,
+                EstimatedItemHeight = 42,
+                OverscanViewports = 0
+            };
+            for (var i = 0; i < 120; i++)
+            {
+                panel.AddItem(new CollapsingBlock());
+            }
+
+            panel.Measure(new Size(300, double.PositiveInfinity));
+
+            AssertViewportFullyRealized(panel, scroll);
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Fact]
+    public void LongDocumentWithDeferredTablesKeepsViewportRealizedAfterJumpAndResize() => platform.Run(() =>
+    {
+        var blocks = Enumerable.Range(0, 220).Select(index => index % 20 == 0
+            ? $"## Table {index}\n\n| 列一 | 列二 | 列三 |\n| --- | --- | --- |\n" +
+              string.Join('\n', Enumerable.Range(0, 24).Select(row =>
+                  $"| {index}-{row} | 较长单元格内容用于触发换行与重新量测 | value-{row} |"))
+            : $"Paragraph {index} with enough text to keep the document virtualized and force deferred block creation.");
+        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
+        var presenter = new ScrollContentPresenter { Content = viewer };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 640, Height = 360, Content = scroll };
+        window.Show();
+        try
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
+            Assert.True(panel.IsVirtualizing);
+            Assert.True(panel.ItemCount >= 200);
+
+            foreach (var ratio in new[] { 0d, .25d, .5d, .75d, 1d })
+            {
+                var maxOffset = Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height);
+                scroll.Offset = new Vector(0, maxOffset * ratio);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+
+                AssertViewportFullyRealized(panel, scroll);
+                AssertViewportContentReady(panel, scroll);
+            }
+
+            window.Width = 420;
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            AssertViewportFullyRealized(panel, scroll);
+            AssertViewportContentReady(panel, scroll);
         }
         finally
         {
@@ -129,6 +226,36 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
 
         Assert.True(missed.Count == 0,
             $"viewport [{viewportTop:0},{viewportBottom:0}] has unrealized bands: {string.Join(",", missed)}");
+    }
+
+    private sealed class CollapsingBlock : Control
+    {
+        private bool _measuredOnce;
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var height = _measuredOnce ? 0 : 24;
+            _measuredOnce = true;
+            InvalidateMeasure();
+            return new Size(availableSize.Width, height);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize) => finalSize;
+    }
+
+    private static void AssertViewportContentReady(WindowedStackPanel panel, ScrollViewer scroll)
+    {
+        var viewportTop = scroll.Offset.Y;
+        var viewportBottom = viewportTop + scroll.Viewport.Height;
+        var empty = new List<int>();
+        for (var index = 0; index < panel.ItemCount; index++)
+        {
+            if (!panel.TryGetItemTop(index, out var top)) continue;
+            var bandHeight = panel.GetItemHeight(index);
+            if (top + bandHeight <= viewportTop || top >= viewportBottom) continue;
+            if (panel.GetRealizedItem(index) is Decorator { Child: null }) empty.Add(index);
+        }
+
+        Assert.True(empty.Count == 0, $"viewport has realized blocks without content: {string.Join(",", empty)}");
     }
 
     /// <summary>首次量测报矮、之后报真实高度的控制：模拟延迟建块与异步出图的量测时序。</summary>

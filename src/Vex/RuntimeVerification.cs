@@ -599,7 +599,18 @@ internal static class RuntimeVerification
                 }
             }
 
-            // 二、阅读空白：按用户手势序列——源码编辑态缩窗 → 切阅读 → 大纲跳到宽行内代码区（5.1C 形态）→
+            // 二、阅读空白：dock 几何使用小合成稿；以下全部改用仓库内的真实长文档，
+            // 避免合成文本遗漏图片、公式、脚注、HTML、Grid Table 与异步图表。
+            var fixturePath = FindRepositoryDocument("docs/Markdown功能示例.md");
+            var openingFixture = model.OpenPathAsync(fixturePath);
+            Wait(window, () => openingFixture.IsCompleted);
+            openingFixture.GetAwaiter().GetResult();
+            model.Appearance.SelectTypographyByKey("SoftSage");
+            SettleStable(window, 1200);
+            model.Layout.IsOutlineVisible = true;
+            report.Add($"[fixture] path={fixturePath} bytes={new FileInfo(fixturePath).Length}");
+
+            // 按用户手势序列——源码编辑态缩窗 → 切阅读 → 大纲跳到宽行内代码区（5.1C 形态）→
             // 逐屏下滚（每步探一次视口内未物化条目）→ 放大窗幅，捕捉空白首次出现的位置与当时条目尺寸。
             window.Width = 1280;
             window.Height = 820;
@@ -620,6 +631,7 @@ internal static class RuntimeVerification
             report.Add($"[read] blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} outlineRows={outline.OutlineItems.Count}");
 
             var blanks = new List<string>();
+            var stableFailures = new List<string>();
             void ProbeBlank(string tag)
             {
                 window.UpdateLayout();
@@ -632,9 +644,12 @@ internal static class RuntimeVerification
                     if (!panel.TryGetItemTop(index, out var top)) continue;
                     var bandHeight = panel.GetItemHeight(index);
                     if (top + bandHeight <= viewportTop || top >= viewportBottom) continue;
-                    if (panel.GetRealizedItem(index) is null)
+                    var realized = panel.GetRealizedItem(index);
+                    var deferredEmpty = realized?.GetType().Name == "DeferredMarkdownBlock"
+                        && realized is Avalonia.Controls.Decorator { Child: null };
+                    if (realized is null || deferredEmpty)
                     {
-                        blanks.Add($"#{index}@{top:0}+{bandHeight:0}");
+                        blanks.Add($"#{index}@{top:0}+{bandHeight:0}{(deferredEmpty ? ":empty-child" : string.Empty)}");
                         blankHeight += bandHeight;
                     }
                 }
@@ -659,7 +674,12 @@ internal static class RuntimeVerification
             outlinePanel.Navigate(wideRow);
             SettleStable(window, 1200);
             ProbeBlank("read-jump");
-            if (blanks.Count > 0) { DumpNeighbors("read-jump", int.Parse(blanks[0].Split('@')[0][1..])); Screenshot("read-jump"); }
+            if (blanks.Count > 0)
+            {
+                stableFailures.Add("read-jump");
+                DumpNeighbors("read-jump", int.Parse(blanks[0].Split('@')[0][1..]));
+                Screenshot("read-jump");
+            }
 
             // 逐屏下滚：捕捉空白首次出现与最严重一步。
             string? worstStep = null;
@@ -686,6 +706,7 @@ internal static class RuntimeVerification
             window.Height = 940;
             SettleStable(window, 1200);
             ProbeBlank("read-enlarged");
+            if (blanks.Count > 0) stableFailures.Add("read-enlarged");
             Screenshot("read-enlarged");
 
             // 三、渲染进行中的滚动风暴：阅读态在场重开文档，不等渲染静默就开始逐屏下滚，
@@ -693,7 +714,7 @@ internal static class RuntimeVerification
             window.Width = 1000;
             window.Height = 700;
             SettleStable(window, 500);
-            var reopened = model.OpenPathAsync(documentPath);
+            var reopened = model.OpenPathAsync(fixturePath);
             Wait(window, () => reopened.IsCompleted);
             reopened.GetAwaiter().GetResult();
             for (var step = 0; step < 40; step++)
@@ -714,10 +735,59 @@ internal static class RuntimeVerification
             // 风暴后再静默复探：区分「瞬时未收敛」与「稳定坏态」。
             SettleStable(window, 1200);
             ProbeBlank("live-settled");
+            if (blanks.Count > 0) stableFailures.Add("live-settled");
+            if (model.Markdown != File.ReadAllText(fixturePath))
+            {
+                throw new InvalidOperationException("Reading layout verification changed the comprehensive repository document.");
+            }
+
+            // 四、真实手工测试长文：跨整篇比例跳滚，并在窄窗/宽窗下复探。
+            // 这份文档没有重复生成，可直接发现与合成压力样本不同的块高组合。
+            var manualDocumentPath = FindRepositoryDocument("docs/测试文档.md");
+            var openingManual = model.OpenPathAsync(manualDocumentPath);
+            Wait(window, () => openingManual.IsCompleted);
+            openingManual.GetAwaiter().GetResult();
+            SettleStable(window, 1500);
+            viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
+            scroll = preview.FindControl<ScrollViewer>("PreviewScrollViewer")!;
+            panel = viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().Single();
+            Wait(window, () => viewer.CurrentModel.Blocks.Count > 0 && panel.ItemCount > 0);
+            report.Add($"[manual] path={manualDocumentPath} blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} bytes={new FileInfo(manualDocumentPath).Length}");
+            foreach (var ratio in new[] { 0d, .03d, .11d, .23d, .37d, .49d, .61d, .73d, .84d, .93d, 1d })
+            {
+                var maxOffset = Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height);
+                scroll.Offset = new Vector(0, maxOffset * ratio);
+                SettleStable(window, 600);
+                ProbeBlank($"manual-jump-{ratio:0.00}");
+                if (blanks.Count > 0)
+                {
+                    stableFailures.Add($"manual-jump-{ratio:0.00}");
+                    DumpNeighbors($"manual-{ratio:0.00}", int.Parse(blanks[0].Split('@')[0][1..]));
+                    Screenshot($"manual-blank-{ratio:0.00}");
+                }
+            }
+
+            foreach (var (width, height) in new[] { (860, 620), (1520, 960) })
+            {
+                window.Width = width;
+                window.Height = height;
+                SettleStable(window, 1000);
+                ProbeBlank($"manual-resize-{width}x{height}");
+                if (blanks.Count > 0) stableFailures.Add($"manual-resize-{width}x{height}");
+            }
+            if (model.Markdown != File.ReadAllText(manualDocumentPath))
+            {
+                throw new InvalidOperationException("Reading layout verification changed the manual repository document.");
+            }
 
             var finalResult = string.Join(Environment.NewLine, report);
             File.WriteAllText(Path.Combine(_uiDirectory, "layout-verification.txt"), finalResult);
             Console.WriteLine(finalResult);
+            if (stableFailures.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    $"Reading viewport still contains unrealized bands after layout settled: {string.Join(",", stableFailures)}.");
+            }
             Console.WriteLine("LAYOUT-VERIFY PASS");
         }
         finally
@@ -755,6 +825,22 @@ internal static class RuntimeVerification
                 return panelQuiet;
             });
         }
+    }
+
+    private static string FindRepositoryDocument(string relativePath)
+    {
+        foreach (var start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
+        {
+            var directory = new DirectoryInfo(start);
+            while (directory is not null)
+            {
+                var candidate = Path.Combine(directory.FullName, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                if (File.Exists(candidate)) return candidate;
+                directory = directory.Parent;
+            }
+        }
+
+        throw new FileNotFoundException($"Repository verification document was not found: {relativePath}");
     }
 
     private static void Wait(Window window, Func<bool> condition)

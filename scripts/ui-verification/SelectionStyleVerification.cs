@@ -102,6 +102,7 @@ internal static class SelectionStyleVerification
                 window.KeyRelease(Key.Right, RawInputModifiers.Shift, PhysicalKey.ArrowRight, null); Render();
                 Check((layout == "source" ? source.SelectedText : live.SelectedText) == "Target", "Real keyboard selects target: " + label);
                 Escape(); // Dismiss the selection bar before exercising the separate host toolbar.
+                Check((layout == "source" ? source.SelectedText : live.SelectedText) == "Target", "Escape preserves selection while dismissing its bar: " + label);
             }
             MarkdownSpanStylePicker Open(string name)
             {

@@ -258,6 +258,12 @@ public partial class MarkdownLiveEditorView
 
     private void OnDocumentSelectionKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None && _selectionBarPopup is { IsOpen: true })
+        {
+            HideSelectionBar();
+            e.Handled = true;
+            return;
+        }
         if (e.Key == Key.Apps || e.Key == Key.F10 && e.KeyModifiers == KeyModifiers.Shift)
             ContextSourceLine = _activeIndex >= 0 && _activeIndex < _models.Count ? Math.Max(1, _models[_activeIndex].SourceLine) : 1;
         if (e.Source is Visual visual && visual.GetVisualAncestors().OfType<TextBox>().FirstOrDefault() is { } input
