@@ -4,16 +4,16 @@
     <MicrosoftNetTestSdkVersion>18.12.0</MicrosoftNetTestSdkVersion>
     <XunitVersion>4.0.3</XunitVersion>
     <XunitRunnerVisualStudioVersion>4.0.1</XunitRunnerVisualStudioVersion>
-    <CodeWFAvaloniaVersion>12.1.6.9</CodeWFAvaloniaVersion>
+    <CodeWFAvaloniaVersion>12.2.0.1</CodeWFAvaloniaVersion>
     <CodeWFToolkitVersion>1.1.10</CodeWFToolkitVersion>
-    <AvaloniaVersion>12.1.6</AvaloniaVersion>
+    <AvaloniaVersion>12.2.0</AvaloniaVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
     <AvaloniaControlsDataGridVersion>12.1.2</AvaloniaControlsDataGridVersion>
-    <SvgSkiaVersion>5.2.3</SvgSkiaVersion>
+    <SvgSkiaVersion>5.2.4</SvgSkiaVersion>
     <SkiaSharpVersion>4.159.0-rc.1.26567.13</SkiaSharpVersion>
     <HarfBuzzSharpVersion>15.0.0.100-rc.1.26567.13</HarfBuzzSharpVersion>
     <UrsaAvaloniaVersion>2.3.1</UrsaAvaloniaVersion>
-    <PdfPigVersion>0.1.17-alpha-202611100027-21de1</PdfPigVersion>
+    <PdfPigVersion>0.1.17-alpha-202611230028-4a6b5</PdfPigVersion>
     <ReverseMarkdownVersion>6.3.0</ReverseMarkdownVersion>
     <ReactiveUIAvaloniaVersion>12.1.7</ReactiveUIAvaloniaVersion>
     <SemiAvaloniaVersion>12.1.0.2</SemiAvaloniaVersion>

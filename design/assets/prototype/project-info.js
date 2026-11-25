@@ -35,6 +35,7 @@ window.VexProject = {
     "Avalonia.Headless",
     "Avalonia.Markup.Xaml.Loader",
     "Svg.Skia",
+    "Avalonia.Skia",
     "Markdig",
     "Microsoft.CodeAnalysis.BannedApiAnalyzers",
     "SkiaSharp",

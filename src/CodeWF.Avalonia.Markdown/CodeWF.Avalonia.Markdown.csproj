@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <!-- 迁入库沿用 CodeWF.Avalonia 的 12.1.6.x 版本线，与 Vex 应用版本分开管理。 -->
-    <Version>12.1.6.9</Version>
+    <Version>12.2.0.1</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TargetFramework>net11.0</TargetFramework>
@@ -21,6 +21,7 @@
     <PackageReference Include="SkiaSharp" />
     <PackageReference Include="Svg.Controls.Skia.Avalonia" />
     <PackageReference Include="Svg.Skia" />
+    <PackageReference Include="Avalonia.Skia" />
     <PackageReference Include="Sylinko.CSharpMath.Avalonia" />
     <PackageReference Include="TextMateSharp" />
     <PackageReference Include="TextMateSharp.Grammars" />
