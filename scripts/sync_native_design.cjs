@@ -138,12 +138,14 @@ for(const t of types){const body=declarations(context.VexTypeRules(t.key,false),
   catalog+=`        new(${q(t.key)}, ${q(t.label)}, ${q(t.en)}, ${q(t.note)}, ${t.recommended}, ${size}, ${leading}, ${q(context.VexDesign.typeTokens[t.key].light.text)}, ${q(context.VexDesign.typeTokens[t.key].dark.text)}, ${q(t.light)}, ${q(t.dark)}, ${q(body['font-family']?.includes('Serif')?'serif':body['font-family']?.includes('mono')?'mono':'system')}, [${[1,2,3,4,5,6].map(l=>heading(t,l,size)).join(', ')}], ${q(context.VexTypeExport(t.key,false))}, ${q(context.VexTypeExport(t.key,true))}, ${quote(t,size)}, ${q(paragraph['text-align']==='justify'?'Justify':'Left')}) { ParagraphIndent = ${px(paragraph['text-indent']||'0',size)} },\n`;
 }
 catalog+='    ];\n    public static ArticleTypography? Find(string? key) => All.FirstOrDefault(item => item.Key == key);\n}\n';
-write(path.join(library,'src/Markdown/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'),catalog);
+/* 排版目录 g.cs 自五工程迁移（V2.0.0.0）起住在 Vex 仓 src/CodeWF.Avalonia.Markdown.Lite/Themes/，
+ * 不再随库根走——迁移后这里若仍拼 library 路径，--check 会对不存在的文件报漂移。 */
+write(path.join(root,'src/CodeWF.Avalonia.Markdown.Lite/Themes/ArticleTypographyCatalog.g.cs'),catalog);
 if (checkOnly) {
   const drifted = [];
   for (const {file,text} of outputs) {
     const existing = fs.existsSync(file) ? fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n') : null;
-    if (existing !== text) drifted.push(path.relative(library,file));
+    if (existing !== text) drifted.push(path.relative(file.startsWith(root)?root:library,file));
   }
   if (drifted.length) {
     console.error(`库资源与原型契约不同步（${drifted.length} 个文件漂移）：`);
