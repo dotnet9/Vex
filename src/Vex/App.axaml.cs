@@ -141,6 +141,10 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             Instance = this;
+            // 图片尺寸缓存跨会话持久化：应用重启后首轮滚动不再重演图片 0→满高跳变。
+            CodeWF.Avalonia.Markdown.Controls.MarkdownImage.DimensionCachePathResolver = () =>
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Vex", "image-dimensions.tsv");
             ApplyInitialTheme();
             desktop.MainWindow = Services.GetRequiredService<MainWindow>();
             desktop.MainWindow.Show();

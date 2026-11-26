@@ -263,6 +263,18 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         var imageBasePath = ImageBasePath;
         var resolvedPath = TryResolveLocalSource(source);
         var cacheGeneration = Volatile.Read(ref _imageCacheGeneration);
+        var cacheKey = MarkdownImageSourceLoader.CreateCacheKey(source, imageBasePath, resolvedPath is not null
+            ? _ => resolvedPath
+            : null);
+
+        // 像素尺寸缓存命中：控件重建（块解体/重物化）时同步恢复真实宽高，
+        // 首轮量测即为正确高度——否则 0 高起步、异步解码后跳变，extent 反复修正
+        // 引发锚点补偿风暴（滚轮冻结/滚动条脱节）。
+        if (TryGetImageDimensions(cacheKey, out var knownSize))
+        {
+            _imagePixelSize = knownSize;
+            SetContent(CreateSizedImageHolder(knownSize));
+        }
 
         try
         {
@@ -302,6 +314,8 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
                 _isAnimated = isAnimated;
 
                 SetContent(content);
+                ImageDimensionCache[loaded.CacheKey] = _imagePixelSize;
+                PersistImageDimensions();
                 oldBitmap?.Dispose();
                 oldAnimatedStream?.Dispose();
             });
@@ -977,15 +991,117 @@ public class MarkdownImage : TemplatedControl, CodeWF.Avalonia.Markdown.Renderin
         return image;
     }
 
-    private void ApplyImageChrome(Control control, Bitmap bitmap)
+    /// <summary>
+    /// 像素尺寸缓存（cacheKey → 解码后像素尺寸）：块解体/重物化重建控件时，
+    /// 命中即同步恢复真实宽高，避免 0 高起步 → 解码后跳变的 extent 振荡布局风暴。
+    /// 进程内缓存之外还持久化到磁盘（<see cref="DimensionCachePathResolver"/> 由宿主
+    /// 提供路径）：应用重启后首轮滚动不再重演图片 0→满高跳变。
+    /// </summary>
+    private static readonly Dictionary<string, Size> ImageDimensionCache = new(StringComparer.Ordinal);
+
+    /// <summary>尺寸缓存持久化文件路径解析器（宿主启动时设置；未设置则不持久化）。</summary>
+    public static Func<string>? DimensionCachePathResolver { get; set; }
+
+    private static bool _dimensionCacheLoaded;
+
+    private static void PersistImageDimensions()
     {
-        _imagePixelSize = new Size(bitmap.PixelSize.Width, bitmap.PixelSize.Height);
+        try
+        {
+            var path = DimensionCachePathResolver?.Invoke();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+            var dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            lock (ImageByteCacheGate)
+            {
+                var lines = ImageDimensionCache.Select(kv =>
+                    $"{kv.Key}	{(int)kv.Value.Width}	{(int)kv.Value.Height}");
+                File.WriteAllLines(path, lines);
+            }
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            // 持久化失败不影响功能：进程内缓存仍有效。
+        }
+    }
+
+    private static void LoadImageDimensions()
+    {
+        if (_dimensionCacheLoaded)
+        {
+            return;
+        }
+        _dimensionCacheLoaded = true;
+        try
+        {
+            var path = DimensionCachePathResolver?.Invoke();
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                return;
+            }
+            lock (ImageByteCacheGate)
+            {
+                foreach (var line in File.ReadLines(path))
+                {
+                    var parts = line.Split('	');
+                    if (parts.Length == 3
+                        && int.TryParse(parts[1], out var width)
+                        && int.TryParse(parts[2], out var height)
+                        && width > 0 && height > 0)
+                    {
+                        ImageDimensionCache[parts[0]] = new Size(width, height);
+                    }
+                }
+            }
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or FormatException)
+        {
+            // 文件损坏等场景静默放弃：进程内缓存照常工作。
+        }
+    }
+
+    private static bool TryGetImageDimensions(string cacheKey, out Size size)
+    {
+        LoadImageDimensions();
+        lock (ImageByteCacheGate)
+        {
+            return ImageDimensionCache.TryGetValue(cacheKey, out size) && size.Width > 0;
+        }
+    }
+
+    /// <summary>按已知像素尺寸预建等宽等高占位（解码完成后由真实内容替换，视觉无跳变）。</summary>
+    private Control CreateSizedImageHolder(Size pixelSize)
+    {
+        var (width, height) = CalculateDisplaySize(pixelSize.Width, pixelSize.Height);
+        var image = new Image
+        {
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Width = double.IsNaN(Width) || Width <= 0 ? width : Width,
+            Height = double.IsNaN(Height) || Height <= 0 ? height : Height
+        };
+        ApplyImageChrome(image, pixelSize);
+        return image;
+    }
+
+    private void ApplyImageChrome(Control control, Bitmap bitmap) =>
+        ApplyImageChrome(control, new Size(bitmap.PixelSize.Width, bitmap.PixelSize.Height));
+
+    private void ApplyImageChrome(Control control, Size pixelSize)
+    {
+        _imagePixelSize = pixelSize;
         control.Classes.Add(MarkdownStyleKeys.ImageContent);
         control.MaxWidth = DefaultMaxImageWidth;
         control.MaxHeight = DefaultMaxImageHeight;
         control.Margin = new Thickness(0, 6, 0, 10);
 
-        var (width, height) = CalculateDisplaySize(bitmap.PixelSize.Width, bitmap.PixelSize.Height);
+        var (width, height) = CalculateDisplaySize(pixelSize.Width, pixelSize.Height);
         control.Width = width;
         control.Height = height;
     }
