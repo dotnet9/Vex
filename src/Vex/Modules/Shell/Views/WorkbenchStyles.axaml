@@ -172,12 +172,15 @@
     <Setter Property="Stroke" Value="{DynamicResource VexAccentBrush}" />
   </Style>
   <!-- 原型分栏把手本体透明不占视（.sidebar-splitter w=1 background:transparent，
-       ::before 向两侧各扩 5px 只为命中）；发丝线画在左右两块的外缘，把手只负责拖动。 -->
+       ::before 扩命中）；发丝线画在左右两块的外缘，把手只负责拖动。 -->
   <Style Selector="GridSplitter.workspace-gap">
     <Setter Property="Background" Value="Transparent" />
   </Style>
+  <!-- 命中只向右扩 5px（把手本身 1px，靠扩展才好抓）：两条竖缝的左邻分别是文件栏与正文的
+       竖向滚动条（都贴列右缘），向左扩会以 ZIndex=9 盖住滑块右半——按下滑块被分割条截走
+       （垂直拖不动列宽，毫无反馈），落在该条带上的滚轮也绕开阅读视图。 -->
   <Style Selector="GridSplitter.gap-horizontal">
-    <Setter Property="Margin" Value="-5,0" />
+    <Setter Property="Margin" Value="0,0,-5,0" />
     <Setter Property="Cursor" Value="SizeWestEast" />
   </Style>
   <Style Selector="GridSplitter.gap-vertical">
@@ -1388,6 +1391,8 @@
     <Setter Property="AllowAutoHide" Value="False"/>
     <Setter Property="behaviors:ScrollTrackPaging.IsEnabled" Value="True"/>
   </Style>
+  <!-- Track.Value 必须是 TemplateBinding（与 Semi 模板一致）：普通 TwoWay Binding 回写走 SetValue(LocalValue)，
+       会压住 ScrollBar 内置的 Template 级 Offset 绑定——拖一次滑块后滚轮仍能滚内容，滑块却不再跟随。 -->
   <Style Selector="ScrollBar:vertical">
     <Setter Property="Width" Value="9"/>
     <Setter Property="Template">
@@ -1395,7 +1400,7 @@
         <Grid Background="Transparent">
           <Track Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True"
                  Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
-                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}">
+                 Value="{TemplateBinding Value, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}">
             <Track.Thumb>
               <Thumb Classes="vex-scroll-thumb" MinHeight="32"/>
             </Track.Thumb>
@@ -1411,7 +1416,7 @@
         <Grid Background="Transparent">
           <Track Name="PART_Track" Orientation="Horizontal"
                  Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
-                 Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}">
+                 Value="{TemplateBinding Value, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}">
             <Track.Thumb>
               <Thumb Classes="vex-scroll-thumb" MinWidth="32"/>
             </Track.Thumb>

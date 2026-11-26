@@ -968,6 +968,26 @@ void VerifyDocumentWindows(VerificationVexApp app, Window window, MainWindowView
     Pump(vm.OpenStartupDocumentAsync([BundledDocuments.GetPath("更新日志.md")]));
     vm.Workbench.ShowRead(); Pump(); SettleRendering(); Capture(window, "changelog-workspace");
     Check(vm.Markdown == File.ReadAllText(BundledDocuments.GetPath("更新日志.md")), "Full workspace loads the real packaged changelog");
+    // 拖滑块后滚轮：滑块必须继续跟随偏移。模板里 Track.Value 若用普通 TwoWay Binding，回写会以
+    // LocalValue 压住 ScrollBar 内置的 Offset 绑定——内容照滚、滑块冻结，只看 Offset 的断言发现不了。
+    var readingScroll = ((Vex.Modules.Shell.Views.MainWindow)window).Workspace
+        .FindControl<Vex.Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!
+        .FindControl<ScrollViewer>("PreviewScrollViewer")!;
+    var readingBar = readingScroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>()
+        .First(b => b.Orientation == Avalonia.Layout.Orientation.Vertical && b.IsEffectivelyVisible);
+    var readingThumb = readingBar.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.Thumb>().First(t => t.IsEffectivelyVisible);
+    var dragFrom = readingThumb.TranslatePoint(new Rect(readingThumb.Bounds.Size).Center, window)!.Value;
+    var dragTo = new Point(dragFrom.X, readingBar.TranslatePoint(default, window)!.Value.Y + readingBar.Bounds.Height - 9);
+    window.MouseDown(dragFrom, MouseButton.Left); Pump();
+    for (var step = 1; step <= 30; step++) { window.MouseMove(dragFrom + (dragTo - dragFrom) * (step / 30d), RawInputModifiers.LeftMouseButton); Pump(); }
+    window.MouseUp(dragTo, MouseButton.Left); Pump(); SettleRendering();
+    Check(readingScroll.Offset.Y > readingScroll.Viewport.Height, "Dragging the reading scrollbar thumb scrolls the document");
+    var beforeWheel = readingScroll.Offset.Y;
+    window.MouseWheel(readingScroll.TranslatePoint(new Point(readingScroll.Bounds.Width / 2, readingScroll.Bounds.Height / 2), window)!.Value, new Vector(0, 1));
+    Pump(); SettleRendering();
+    Check(Math.Abs(readingScroll.Offset.Y - beforeWheel + 120) < 1 && Math.Abs(readingBar.Value - readingScroll.Offset.Y) < 1,
+        $"Wheel after a thumb drag keeps the scrollbar in sync with the offset: offset {beforeWheel:0.#} -> {readingScroll.Offset.Y:0.#}, bar value {readingBar.Value:0.#}");
+    readingScroll.Offset = default; Pump(); SettleRendering();
     vm.Markdown += "\n普通文档允许编辑。";
     Check(vm.DocumentInfo.IsModified, "Bundled documents have no special read-only restriction");
     vm.Markdown = File.ReadAllText(BundledDocuments.GetPath("更新日志.md"));
