@@ -1,3 +1,4 @@
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 namespace CodeWF.Avalonia.Markdown.Rendering;
 
 /// <summary>
@@ -45,6 +46,21 @@ public sealed class MarkdownCodeHighlightSession
 		var lines = code.Replace("\r\n", "\n").Split('\n');
 		var result = new object[lines.Length];
 
+		// 跨切换复用：换文档会整篇重建块与会话（_blockStates 随文本变更清空），同一份
+		// 代码（同语言+主题 Tag）在新会话里重算只是浪费——指纹 LRU 命中时整表搬回，
+		// Update 退化为零分词的纯前缀复用。token 与词法状态由同一高亮器+同一 Tag 产出，
+		// 跨实例语义等价（与流式前缀复用同一约定）。
+		if (CrossSwitchCache.TryGet((Tag, code), out var seeded))
+		{
+			_entries.Clear();
+			_entries.AddRange(seeded);
+			for (var i = 0; i < seeded.Count; i++)
+			{
+				result[i] = seeded[i].Tokens;
+			}
+			return result;
+		}
+
 		var reuseCount = 0;
 		var limit = Math.Min(_entries.Count, lines.Length);
 		while (reuseCount < limit && _entries[reuseCount].Text == lines[reuseCount])
@@ -73,8 +89,22 @@ public sealed class MarkdownCodeHighlightSession
 			result[i] = tokens;
 		}
 
+		// 计算完成后入指纹缓存，供换文档后的新会话整表搬回。
+		CrossSwitchCache.Set((Tag, code), _entries.ToArray());
+
 		return result;
 	}
+
+	/// <summary>
+	/// 跨切换指纹缓存：键 = (高亮器 Tag=语言+主题, 代码源码)。换文档重建会话后，
+	/// 同键命中即可零分词恢复全部行 token（见 <see cref="Update"/>）。
+	/// </summary>
+	private static readonly BlockResultCache<(object? Tag, string Code), IReadOnlyList<LineEntry>> CrossSwitchCache = new(CrossSwitchCacheCapacity);
+
+	private const int CrossSwitchCacheCapacity = 64;
+
+	/// <summary>跨切换指纹缓存当前条数（测试与诊断用）。</summary>
+	public static int CrossSwitchCacheCount => CrossSwitchCache.Count;
 
 	/// <summary>丢弃全部缓存行（语言/主题变更或复用语义失效时调用）。</summary>
 	public void Reset() => _entries.Clear();
