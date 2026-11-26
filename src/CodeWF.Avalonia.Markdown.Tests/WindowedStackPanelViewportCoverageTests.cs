@@ -170,7 +170,7 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
     });
 
     [Fact]
-    public void DefaultViewerKeepsEveryParagraphRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
+    public void DefaultViewerKeepsViewportRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
     {
         var blocks = Enumerable.Range(0, 450)
             .Select(index => $"Paragraph {index} is ordinary supported Markdown content.");
@@ -195,39 +195,23 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
             }
 
             var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
-            Assert.False(viewer.EnableVirtualization);
-            Assert.False(panel.IsVirtualizing);
-            Assert.Equal(450, panel.ItemCount);
-            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+            Assert.True(viewer.EnableVirtualization);
+            Assert.True(panel.IsVirtualizing);
+            // 虚拟化语义：只物化窗口附近条目，整体远小于全量。
+            Assert.True(panel.RealizedItemCount < panel.ItemCount);
 
-            for (var index = 0; index < panel.ItemCount; index++)
-            {
-                Assert.NotNull(panel.GetRealizedItem(index));
-                Assert.True(panel.GetRealizedItem(index)!.DesiredSize.Height > 0);
-            }
-
-            var paragraph = panel.GetRealizedItem(370) switch
-            {
-                MarkdownTextSegmentView segment => (Control)segment,
-                SelectableTextBlock textBlock => textBlock,
-                _ => throw new Xunit.Sdk.XunitException($"块 370 应为段控件或可选文本块，实际 {panel.GetRealizedItem(370)?.GetType().Name}")
-            };
-            Assert.Equal("Paragraph 370 is ordinary supported Markdown content.",
-                paragraph is MarkdownTextSegmentView seg ? seg.PlainText
-                    : ((SelectableTextBlock)paragraph).Inlines?.OfType<Run>().Single().Text);
+            // 跳到块 370：视口内该块必须已物化且内容正确（量测后重放窗口判定兜底）。
             Assert.True(panel.TryGetItemTop(370, out var paragraphTop));
             scroll.Offset = new Vector(0, paragraphTop);
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
 
-            Assert.True(paragraphTop >= scroll.Offset.Y);
-            Assert.True(paragraphTop + paragraph.DesiredSize.Height <= scroll.Offset.Y + scroll.Viewport.Height);
-            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
+            AssertViewportFullyRealized(panel, scroll);
+            AssertViewportContentReady(panel, scroll);
 
             window.Width = 420;
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
-            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
             AssertViewportFullyRealized(panel, scroll);
             AssertViewportContentReady(panel, scroll);
         }
@@ -242,7 +226,7 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
     public void ChangingVirtualizationAfterRenderRebuildsBlocksWithoutLosingContent() => platform.Run(() =>
     {
         var blocks = Enumerable.Range(0, 120).Select(index => $"Paragraph {index}");
-        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
+        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks), EnableVirtualization = false };
         var presenter = new ScrollContentPresenter { Content = viewer };
         var scroll = new ScrollViewer
         {
@@ -263,6 +247,7 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
             }
 
             var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
+            Assert.False(viewer.EnableVirtualization); // 本测试从显式关闭起跑（验证的是切换行为，不是默认值）
             Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
 
             viewer.EnableVirtualization = true;

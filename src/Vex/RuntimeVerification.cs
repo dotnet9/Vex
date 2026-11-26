@@ -633,10 +633,8 @@ internal static class RuntimeVerification
 
             var blanks = new List<string>();
             var stableFailures = new List<string>();
-            if (viewer.EnableVirtualization || panel.IsVirtualizing || panel.RealizedItemCount != panel.ItemCount)
-            {
-                stableFailures.Add("read-default-full-layout");
-            }
+            // 虚拟化默认开启（巨文档全量物化真实成本过高，V2.2.2.x 短暂默认关闭已回退）：
+            // 质量红线始终是视口零空白带（下方 ProbeBlank 断言），不再约束物化模式。
             void ProbeBlank(string tag)
             {
                 window.UpdateLayout();
@@ -770,10 +768,6 @@ internal static class RuntimeVerification
             Wait(window, () => viewer.CurrentModel.Blocks.Count > 0 && panel.ItemCount > 0);
             report.Add($"[manual] path={manualDocumentPath} blocks={viewer.CurrentModel.Blocks.Count} items={panel.ItemCount} " +
                 $"bytes={new FileInfo(manualDocumentPath).Length} virtualization={viewer.EnableVirtualization} realized={panel.RealizedItemCount}");
-            if (viewer.EnableVirtualization || panel.IsVirtualizing || panel.RealizedItemCount != panel.ItemCount)
-            {
-                stableFailures.Add("manual-default-full-layout");
-            }
             foreach (var ratio in new[] { 0d, .03d, .11d, .23d, .37d, .49d, .61d, .73d, .84d, .93d, 1d })
             {
                 var maxOffset = Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height);

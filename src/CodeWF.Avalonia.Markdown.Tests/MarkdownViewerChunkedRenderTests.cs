@@ -61,7 +61,7 @@ public sealed class MarkdownViewerChunkedRenderTests(AvaloniaPlatformFixture pla
 	[Fact]
 	public void DocumentSwitch_BuildsFirstChunkSync_ThenCompletesInOrderInBackground() => platform.Run(() =>
 	{
-		var viewer = new MarkdownViewer();
+		var viewer = new MarkdownViewer { EnableVirtualization = false };
 		var window = new Window { Width = 500, Height = 420, Content = viewer };
 		window.Show();
 		try
@@ -97,7 +97,7 @@ public sealed class MarkdownViewerChunkedRenderTests(AvaloniaPlatformFixture pla
 	[Fact]
 	public void SameDocumentRerender_BuildsEverythingSynchronously() => platform.Run(() =>
 	{
-		var viewer = new MarkdownViewer();
+		var viewer = new MarkdownViewer { EnableVirtualization = false };
 		var window = new Window { Width = 500, Height = 420, Content = viewer };
 		window.Show();
 		try
@@ -125,7 +125,7 @@ public sealed class MarkdownViewerChunkedRenderTests(AvaloniaPlatformFixture pla
 	[Fact]
 	public void ScrollBoost_AdvancesBuildImmediately_WithoutDuplicateOrReorder() => platform.Run(() =>
 	{
-		var viewer = new MarkdownViewer();
+		var viewer = new MarkdownViewer { EnableVirtualization = false };
 		var window = new Window { Width = 500, Height = 420, Content = viewer };
 		window.Show();
 		try
@@ -162,7 +162,7 @@ public sealed class MarkdownViewerChunkedRenderTests(AvaloniaPlatformFixture pla
 var document = string.Join(Environment.NewLine + Environment.NewLine,
 			Enumerable.Range(0, 1500)
 			.Select(i => $"Paragraph {i} with enough body text to occupy layout space."));
-		var viewer = new MarkdownViewer();
+		var viewer = new MarkdownViewer { EnableVirtualization = false };
 		var window = new Window { Width = 800, Height = 600, Content = viewer };
 		window.Show();
 		try

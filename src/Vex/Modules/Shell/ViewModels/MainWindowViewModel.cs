@@ -3,6 +3,7 @@ using CodeWF.Toolkit.EventBus;
 using ReactiveUI;
 using Vex.Core.Messaging;
 using Vex.Core.Models;
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 using Vex.Core.Services;
 using Vex.Modules.Shell.Services;
 
@@ -377,6 +378,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private void SetMarkdown(string? value, bool refreshImmediately)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         var normalized = value ?? string.Empty;
         if (_markdown == normalized)
         {
@@ -387,11 +389,13 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         _document = _document with { Markdown = _markdown };
         _documentVersion++;
         ScheduleAutoSave();
+        CodeWF.Toolkit.Logging.Logger.Debug($"SetMarkdown len={normalized.Length} 到派生态刷新前 t={sw.ElapsedMilliseconds}ms");
 
         if (refreshImmediately)
         {
             CancelScheduledMarkdownDerivedStateRefresh();
             RefreshMarkdownDerivedState();
+            CodeWF.Toolkit.Logging.Logger.Debug($"SetMarkdown len={normalized.Length} 派生态刷新完成 t={sw.ElapsedMilliseconds}ms");
             return;
         }
 
@@ -726,6 +730,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private async Task ApplyDocumentFilesAsync(IReadOnlyList<DocumentFile> files, bool bypassUnsavedPrompt = false)
     {
+        var openSw = System.Diagnostics.Stopwatch.StartNew();
+        CodeWF.Toolkit.Logging.Logger.Debug($"打开目录：收到 {files.Count} 个文件（服务侧扫描已含在前段）");
         var workspaceFolder = _documentService.LastOpenedFolderPath;
         if (files.Count == 0 && string.IsNullOrWhiteSpace(workspaceFolder))
         {
@@ -739,9 +745,11 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
         _documentFiles = files.ToArray();
         var firstFile = _documentFiles.FirstOrDefault();
+        CodeWF.Toolkit.Logging.Logger.Debug($"打开目录：t={openSw.ElapsedMilliseconds}ms 列表就绪");
         PublishDocumentFilesChanged(firstFile, focusWorkspaceRoot: true);
         var workspaceGeneration = _workspaceFiles.Generation;
         StartCurrentFolderWatcher(_currentWorkspaceFolderPath);
+        CodeWF.Toolkit.Logging.Logger.Debug($"打开目录：t={openSw.ElapsedMilliseconds}ms 列表发布+监视器");
 
         _text.PublishLoadedMarkdownFiles(_documentFiles.Count);
         if (firstFile is not null)
@@ -754,6 +762,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
             {
                 await OpenDocumentFileAsync(firstFile, null);
             }
+            CodeWF.Toolkit.Logging.Logger.Debug($"打开目录：t={openSw.ElapsedMilliseconds}ms 首文件已载入");
         }
 
         // 文件载入会同步文档选择；最后再将导航焦点落在本次打开的文件夹。
@@ -1029,11 +1038,38 @@ public sealed partial class MainWindowViewModel : ReactiveObject
     [EventHandler]
     public void ApplyShellStartupArguments(ShellStartupArgumentsCommand command) => _ = OpenStartupDocumentAsync(command.Arguments);
 
+    private int _outlineBuildVersion;
+
     private void RefreshMarkdownDerivedState()
     {
         PublishWorkspaceDocumentState();
         RefreshDocumentInfo();
-        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(_outlineService.BuildOutline(Markdown)));
+        // 大纲构建是全文 Markdig 二次解析（316KB 实测 UI 线程 373ms，是打开目录/切换文件
+        // 顿挫的最大单段）。移到后台线程，带版本守卫：慢结果不覆盖新文档的大纲；
+        // 大纲晚几百毫秒出现无感，冻结有感。
+        var version = ++_outlineBuildVersion;
+        var markdown = Markdown;
+        Task.Run(() =>
+        {
+            IReadOnlyList<MarkdownOutlineItem> items;
+            try
+            {
+                items = _outlineService.BuildOutline(markdown);
+            }
+            catch (Exception error)
+            {
+                CodeWF.Toolkit.Logging.Logger.Debug("大纲后台构建失败: " + error.Message);
+                return;
+            }
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (version != _outlineBuildVersion || _markdown != markdown)
+                {
+                    return;
+                }
+                CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(items));
+            });
+        });
     }
 
     private void RefreshDocumentState()

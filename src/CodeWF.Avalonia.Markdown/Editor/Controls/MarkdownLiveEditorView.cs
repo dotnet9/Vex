@@ -531,6 +531,7 @@ public partial class MarkdownLiveEditorView : UserControl
     /// <summary>同时载入正文和图片基址，只重建一次文档；不触发 <see cref="MarkdownChanged"/>。</summary>
     public void SetText(string? markdown, string? imageBasePath)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         CodeWF.Toolkit.Logging.Logger.Debug("SetText len=" + (markdown?.Length ?? -1));
         ContextSourceLine = 1;
         _suppressChanged = true;
@@ -542,6 +543,7 @@ public partial class MarkdownLiveEditorView : UserControl
             _models.Clear();
             _activeIndex = -1;
             _models.AddRange(MarkdownBlockParser.Parse(markdown));
+            var parseMs = sw.ElapsedMilliseconds;
             // 空文档保持一个空段落并光标就位：点击即可输入（Typora 行为），
             // 否则零块视图点不进任何编辑器，空白文档等于不可编辑。
             // 顺序必须「先重建宿主、后聚焦」：FocusBlock 若先于 RebuildBlocks 执行，
@@ -551,6 +553,8 @@ public partial class MarkdownLiveEditorView : UserControl
             _core.EnsureFirstBlock();
             _textBuffer.Reset();
             RebuildBlocks();
+            CodeWF.Toolkit.Logging.Logger.Debug(
+                $"SetText 分解 len={markdown?.Length ?? -1} parse={parseMs}ms rebuild={sw.ElapsedMilliseconds - parseMs}ms 总={sw.ElapsedMilliseconds}ms 块数={_models.Count}");
             if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
             {
                 _pendingBlankFocus = true;

@@ -144,11 +144,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableCodeBlockFolding), true);
 
     /// <summary>
-    /// 文档宿主的块虚拟化开关；默认关闭，普通阅读始终全量量测与排列。
-    /// 仅在超长流式输出等明确需要窗口物化的场景显式开启。
+    /// 文档宿主的块虚拟化开关；默认开启——巨文档（数千块）全量物化的真实成本
+    /// （真实字体/图片/代码高亮）远超 headless 口径，视口窗口化是正确取舍。
+    /// 视口空白由量测后重放机制兜底（V2.1.0.0），发布门禁布局探针断言零空白带。
     /// </summary>
     public static readonly StyledProperty<bool> EnableVirtualizationProperty =
-        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), false);
+        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), true);
 
     /// <summary>
     /// 启用虚拟化的最小块数量；低于该值时按普通面板渲染，避免小文档付出额外开销。
@@ -1197,7 +1198,9 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             ApplyBlockStyleContext(renderedBlock.Control, _renderedBlocks.Count - 1, _renderedModel);
         }
         _chunkedBuildNextModelIndex += take;
-        RefreshSelectionBlocks(preserveSelection: false);
+        // 每帧只做布局失效让 extent 增长；选区块表重建是 O(当前块数) 的全量投影，
+        // 逐帧调用累计 O(n²)（1600 块 ≈ 数秒的后台忙碌）——收尾一次性做。
+        // 搜索重放自带 _searchText 空守卫（未开查找零成本），保留逐帧。
         InvalidateDocumentLayout();
         ReapplySearchIfActive();
 
