@@ -11,6 +11,7 @@ using Avalonia.VisualTree;
 using CodeWF.Avalonia.Controls.Controls;
 using Vex.Core.Models;
 using Vex.Modules.Shell.ViewModels;
+using System.ComponentModel;
 
 namespace Vex.Modules.Shell.Views;
 
@@ -224,13 +225,33 @@ public sealed class WorkspaceViewController
         {
             _closing = true;
             CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged -= CultureChanged;
-            if (_vm is not null) { _vm.Workbench.PropertyChanged -= Changed; _vm.DocumentInfo.PropertyChanged -= DocumentChanged; }
+            if (_vm is not null) { _vm.Workbench.PropertyChanged -= Changed; _vm.DocumentInfo.PropertyChanged -= DocumentChanged; _vm.Appearance.PropertyChanged -= AppearanceChanged; }
             foreach (var floating in _floating.Values.ToArray()) floating.Close();
             if (_presentationSession is { } session) foreach (var floating in session.Windows.Values) floating.Close();
         };
         CodeWF.Toolkit.Lang.I18nManager.Instance.CultureChanged += CultureChanged;
         Attach();
     }
+    /// <summary>
+    /// 刷新阅读窗格头排版入口的当前主题名。排版卡选择只改 Appearance 状态，
+    /// 名字 TextBlock 是命令式赋值，不订阅属性变更就会停在旧主题名（「排版生效但名称未更新」）。
+    /// </summary>
+    private void AppearanceChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ShellAppearanceViewModel.SelectedTypography)
+            or nameof(ShellAppearanceViewModel.CurrentTypographyTheme))
+        {
+            Dispatcher.UIThread.Post(UpdateRenderTypographyName);
+        }
+    }
+
+    private void UpdateRenderTypographyName()
+    {
+        if (_renderTypographyName is null || _vm is null) return;
+        // NameKey 已含完整 Vex.VexL. 前缀，直接查资源，避免 WorkbenchText.Get 二次拼接。
+        _renderTypographyName.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(_vm.Appearance.SelectedTypography?.NameKey ?? "Vex.VexL.TypographyBasic") ?? string.Empty;
+    }
+
     // 语言切换可能来自后台线程，把手文案与 ToolTip 都必须在 UI 线程写入。
     private void CultureChanged(object? sender, EventArgs e) => Dispatcher.UIThread.Post(() =>
     {
@@ -239,10 +260,10 @@ public sealed class WorkspaceViewController
     });
     private void Attach()
     {
-        if (_vm is not null) { _vm.Workbench.PropertyChanged -= Changed; _vm.DocumentInfo.PropertyChanged -= DocumentChanged; }
+        if (_vm is not null) { _vm.Workbench.PropertyChanged -= Changed; _vm.DocumentInfo.PropertyChanged -= DocumentChanged; _vm.Appearance.PropertyChanged -= AppearanceChanged; }
         if (_pinPreferences is not null) _pinPreferences.PreferencesChanged -= OnPinPreferenceChanged;
         _vm = _window.DataContext as MainWindowViewModel;
-        if (_vm is not null) { _vm.Workbench.PropertyChanged += Changed; _vm.DocumentInfo.PropertyChanged += DocumentChanged; }
+        if (_vm is not null) { _vm.Workbench.PropertyChanged += Changed; _vm.DocumentInfo.PropertyChanged += DocumentChanged; _vm.Appearance.PropertyChanged += AppearanceChanged; }
         _pinPreferences = _vm?.Workbench.Preferences;
         if (_pinPreferences is not null)
         {
@@ -364,8 +385,7 @@ public sealed class WorkspaceViewController
             {
                 _renderLabel!.Text = Label("render");
                 _renderTypographyPrefix!.Text = WorkbenchText.Get("Typography");
-                // NameKey 已含完整 Vex.VexL. 前缀，直接查资源，避免 WorkbenchText.Get 二次拼接。
-                _renderTypographyName!.Text = CodeWF.Toolkit.Lang.I18nManager.Instance.GetResource(_vm.Appearance.SelectedTypography?.NameKey ?? "Vex.VexL.TypographyBasic") ?? string.Empty;
+                UpdateRenderTypographyName();
                 var inPlace = wanted.Contains("render") && !state.IsPresenting && !_floating.ContainsKey("render");
                 var singleRender = inPlace && wanted.Length == 1;
                 renderHeader.IsVisible = inPlace && !singleRender;
