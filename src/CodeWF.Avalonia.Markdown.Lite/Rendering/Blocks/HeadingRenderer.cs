@@ -38,14 +38,29 @@ internal sealed class HeadingRenderer : IMarkdownBlockRenderer
         context.BindTheme(textBlock, SelectableTextBlock.FontFamilyProperty, MarkdownViewer.ContentFontFamilyProperty);
         context.BindTheme(textBlock, SelectableTextBlock.FontSizeProperty, GetHeadingFontSizeProperty(heading.Level));
 
-        foreach (var inline in context.ConvertInlines(heading.Inline, false))
+        // 自绘文本段路径：纯文本+强调+行内码+链接的标题走轻量段控件（块成本一个数量级）；
+        // 含内联图片/公式/脚注/上下标/非 br 内联 HTML 的标题回退既有 SelectableTextBlock 路径。
+        var softBreakAsNewline = context is MarkdownViewer { SyntaxOptions.SoftBreaks: not false };
+        var segmentPath = MarkdownSegmentContentBuilder.TryBuild(heading.Inline, softBreakAsNewline,
+            out var segmentContent, out var linkSpans);
+        if (segmentPath)
         {
-            textBlock.Inlines?.Add(inline);
+            textBlock.IsVisible = false;
+        }
+        else
+        {
+            foreach (var inline in context.ConvertInlines(heading.Inline, false))
+            {
+                textBlock.Inlines?.Add(inline);
+            }
+
+            context.AttachLinkInteraction(textBlock, heading.Inline, false);
         }
 
-        context.AttachLinkInteraction(textBlock, heading.Inline, false);
-
-        if (context is MarkdownViewer viewer && ArticleTypographyResolver.Find(viewer.TypographyTheme) is { } article)
+        var article = context is MarkdownViewer viewer && ArticleTypographyResolver.Find(viewer.TypographyTheme) is { } found
+            ? found
+            : null;
+        if (article is not null)
         {
             var prefix = "CodeWFMarkdownHeading" + heading.Level;
             border.Bind(Layoutable.MarginProperty, border.GetResourceObservable(prefix + "Margin"), BindingPriority.Style);
@@ -55,10 +70,22 @@ internal sealed class HeadingRenderer : IMarkdownBlockRenderer
             border.Bind(Border.BackgroundProperty, border.GetResourceObservable(prefix + "Background"));
             if (!article.Headings[heading.Level - 1].DashedBorder)
                 border.Bind(Border.BorderBrushProperty, border.GetResourceObservable(prefix + "BorderBrush"));
-            textBlock.Bind(SelectableTextBlock.ForegroundProperty, textBlock.GetResourceObservable(prefix + "Foreground"));
-            textBlock.Bind(SelectableTextBlock.FontWeightProperty, textBlock.GetResourceObservable(prefix + "FontWeight"));
-            textBlock.Bind(SelectableTextBlock.TextAlignmentProperty, textBlock.GetResourceObservable(prefix + "TextAlignment"));
-            textBlock.Bind(SelectableTextBlock.LineHeightProperty, textBlock.GetResourceObservable(prefix + "LineHeight"));
+            var textForegroundProperty = segmentPath
+                ? MarkdownTextSegmentView.ForegroundProperty
+                : SelectableTextBlock.ForegroundProperty;
+            var textFontWeightProperty = segmentPath
+                ? MarkdownTextSegmentView.FontWeightProperty
+                : SelectableTextBlock.FontWeightProperty;
+            var textAlignmentProperty = segmentPath
+                ? MarkdownTextSegmentView.TextAlignmentProperty
+                : SelectableTextBlock.TextAlignmentProperty;
+            var textLineHeightProperty = segmentPath
+                ? MarkdownTextSegmentView.LineHeightProperty
+                : SelectableTextBlock.LineHeightProperty;
+            textBlock.Bind(textForegroundProperty, textBlock.GetResourceObservable(prefix + "Foreground"));
+            textBlock.Bind(textFontWeightProperty, textBlock.GetResourceObservable(prefix + "FontWeight"));
+            textBlock.Bind(textAlignmentProperty, textBlock.GetResourceObservable(prefix + "TextAlignment"));
+            textBlock.Bind(textLineHeightProperty, textBlock.GetResourceObservable(prefix + "LineHeight"));
             var font = article.Headings[heading.Level - 1].Font == "system" ? article.Font : article.Headings[heading.Level - 1].Font;
             if (font != "system") textBlock.FontFamily = ArticleTypography.ResolveFont(font);
             if (article.Headings[heading.Level - 1].DashedBorder)
@@ -68,12 +95,12 @@ internal sealed class HeadingRenderer : IMarkdownBlockRenderer
                 decoration.Bind(DashedHeadingDecoration.StrokeProperty, border.GetResourceObservable(prefix + "BorderBrush"));
                 decoration.Bind(DashedHeadingDecoration.ThicknessProperty, border.GetResourceObservable(prefix + "BorderThickness"));
                 border.BorderBrush = Brushes.Transparent;
-                border.Child = textBlock;
+                border.Child = segmentPath ? BuildSegment(segmentContent, linkSpans, textBlock, context, heading.Level, article) : textBlock;
                 return new Panel { Children = { border, decoration } };
             }
         }
 
-        border.Child = textBlock;
+        border.Child = segmentPath ? BuildSegment(segmentContent, linkSpans, textBlock, context, heading.Level, article) : textBlock;
         return border;
     }
 
@@ -116,5 +143,41 @@ internal sealed class HeadingRenderer : IMarkdownBlockRenderer
             5 => MarkdownViewer.Heading5FontSizeProperty,
             _ => MarkdownViewer.Heading6FontSizeProperty
         };
+    }
+
+    /// <summary>按排版主题装配自绘文本段（字体沿用 textBlock 上已解析的值，其余四项接资源绑定）。</summary>
+    private static Control BuildSegment(
+        MarkdownSegmentContent content,
+        IReadOnlyList<MarkdownLinkSpan> linkSpans,
+        SelectableTextBlock textBlock,
+        IMarkdownRenderContext context,
+        int level,
+        ArticleTypography? article)
+    {
+        var segment = new MarkdownTextSegmentView
+        {
+            Content = content,
+            FontWeight = FontWeight.Bold,
+            FontFamily = textBlock.FontFamily,
+            FontSize = textBlock.FontSize,
+            TextAlignment = textBlock.TextAlignment,
+            LineHeight = textBlock.LineHeight,
+        };
+        context.AddMarkdownClass(segment, MarkdownStyleKeys.Heading, MarkdownStyleKeys.GetHeadingClass(level));
+        global::Avalonia.Automation.AutomationProperties.SetHeadingLevel(segment, level);
+        global::Avalonia.Automation.AutomationProperties.SetName(segment, content.Text);
+        var prefix = "CodeWFMarkdownHeading" + level;
+        segment.Bind(MarkdownTextSegmentView.ForegroundProperty, segment.GetResourceObservable(prefix + "Foreground"));
+        segment.Bind(MarkdownTextSegmentView.FontWeightProperty, segment.GetResourceObservable(prefix + "FontWeight"));
+        segment.Bind(MarkdownTextSegmentView.TextAlignmentProperty, segment.GetResourceObservable(prefix + "TextAlignment"));
+        segment.Bind(MarkdownTextSegmentView.LineHeightProperty, segment.GetResourceObservable(prefix + "LineHeight"));
+        var headingProfile = article?.Headings[level - 1];
+        if (headingProfile is not null)
+        {
+            var font = headingProfile.Font == "system" ? article!.Font : headingProfile.Font;
+            if (font != "system") segment.FontFamily = ArticleTypography.ResolveFont(font);
+        }
+        MarkdownLinkInteraction.AttachLinkInteraction(segment, linkSpans, context);
+        return segment;
     }
 }

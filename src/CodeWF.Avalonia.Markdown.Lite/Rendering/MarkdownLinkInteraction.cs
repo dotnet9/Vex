@@ -10,7 +10,7 @@ using Markdig.Syntax.Inlines;
 namespace CodeWF.Avalonia.Markdown.Rendering;
 
 /// <summary>渲染文本中的链接区间（纯文本偏移 → URL，附区间显示文字）。</summary>
-internal sealed record MarkdownLinkSpan(int Start, int End, string Url, string? Text = null);
+public sealed record MarkdownLinkSpan(int Start, int End, string Url, string? Text = null);
 
 /// <summary>
 /// 链接区间提取与指针交互：提取内联树中的链接纯文本区间，
@@ -114,6 +114,30 @@ internal static class MarkdownLinkInteraction
         }
 
         return offset;
+    }
+
+    /// <summary>
+    /// 为自绘文本段挂接链接交互：LinkActivated → 防钓鱼确认 → 打开。
+    /// 段自身负责手型光标与命中，这里只负责打开语义（与 SelectableTextBlock 版本同口径）。
+    /// </summary>
+    public static void AttachLinkInteraction(
+        MarkdownTextSegmentView segment,
+        IReadOnlyList<MarkdownLinkSpan> links,
+        IMarkdownRenderContext context)
+    {
+        if (links.Count == 0)
+        {
+            return;
+        }
+
+        segment.LinkActivated += (_, args) =>
+        {
+            context.RaiseLinkClicked(args);
+            if (!args.Cancel && !string.IsNullOrWhiteSpace(args.Url))
+            {
+                UrlHelper.Open(args.Url);
+            }
+        };
     }
 
     public static void AttachLinkInteraction(

@@ -10,7 +10,7 @@ namespace CodeWF.Avalonia.Markdown.Shared.Rendering;
 /// 可视树坐标系）；实现内部自行 TranslatePoint 到本地。
 /// 偏移口径：块纯文本（<see cref="MarkdownSelectionBlock.PlainText"/>）偏移。
 /// </summary>
-internal interface IMarkdownTextSelectionVisual
+public interface IMarkdownTextSelectionVisual
 {
 	/// <summary>块内文档坐标点 → 纯文本偏移（含边界夹取）。</summary>
 	int HitTestOffset(Point documentPoint);
