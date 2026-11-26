@@ -394,6 +394,8 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         if (refreshImmediately)
         {
             CancelScheduledMarkdownDerivedStateRefresh();
+            // 修改态同步刷新保证保存/关闭判定即时一致；大纲与字数重活仍在后台。
+            RefreshDocumentInfo();
             RefreshMarkdownDerivedState();
             CodeWF.Toolkit.Logging.Logger.Debug($"SetMarkdown len={normalized.Length} 派生态刷新完成 t={sw.ElapsedMilliseconds}ms");
             return;
@@ -1040,8 +1042,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private int _outlineBuildVersion;
 
-    private int _derivedStateVersion;
-
     private void RefreshMarkdownDerivedState()
     {
         PublishWorkspaceDocumentState();
@@ -1050,8 +1050,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
         // 版本守卫丢弃过期结果。大纲/字数晚几百毫秒出现无感，冻结有感。
         var version = ++_outlineBuildVersion;
         var markdown = Markdown;
-        var document = _document;
-        var lastSaved = _lastSavedMarkdown;
         var guideDocument = _guideDocument;
         var draftsEnabled = _settingsStore.Current.RecoveryDrafts != false;
         Task.Run(() =>
@@ -1074,10 +1072,12 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                     return;
                 }
                 CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(items));
-                DocumentInfo.Refresh(document, markdown, lastSaved, statistics);
+                // 修改态必须回用实时文档态：捕获的 lastSaved 是编辑前基线，若保存发生在
+                // 后台计算期间，沿用捕获值会把刚清零的 IsModified 重新置脏。
+                DocumentInfo.Refresh(_document, _markdown, _lastSavedMarkdown, statistics);
                 if (guideDocument is null && draftsEnabled)
                 {
-                    _drafts.QueueSave(document, markdown, lastSaved);
+                    _drafts.QueueSave(_document, _markdown, _lastSavedMarkdown);
                 }
             });
         });
@@ -1154,6 +1154,9 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private void RefreshDocumentInfo()
     {
+        // 轻量同步刷新（标题/路径/修改态）：字数统计与大纲解析的重活仍由
+        // RefreshMarkdownDerivedState 在后台完成后应用，此处不做全文扫描。
+        DocumentInfo.RefreshState(_document, Markdown, _lastSavedMarkdown);
     }
 
     private void SyncDocumentFileList(string path, bool revealPath = true)
