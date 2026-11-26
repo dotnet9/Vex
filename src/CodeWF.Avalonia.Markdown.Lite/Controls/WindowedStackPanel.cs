@@ -530,10 +530,37 @@ public class WindowedStackPanel : Panel
     public bool IsItemMeasured(int index) =>
         index >= 0 && index < _entries.Count && _entries[index].Measured;
 
+    /// <summary>
+    /// 已量测条目的平均真实高度：未量测条目的估算优先用它（虚拟化 extent 的准确性
+    /// 直接决定滚动条比例与拖动映射——固定 24px 估算在真实内容 40-100px 时会把
+    /// extent 低估一半以上，表现为滚轮滚动缩略条脱节、拖动跳变）。
+    /// 无任何量测数据时回落 <see cref="EstimatedItemHeight"/>。
+    /// </summary>
+    private double MeasuredAverageHeight
+    {
+        get
+        {
+            var measured = 0;
+            var total = 0d;
+            foreach (var entry in _entries)
+            {
+                if (!entry.Measured)
+                {
+                    continue;
+                }
+                measured++;
+                total += entry.Size;
+            }
+            return measured > 0 && total > 0 ? total / measured : EstimatedItemHeight;
+        }
+    }
+
     protected override Size MeasureOverride(Size availableSize)
     {
         PrepareAnchor();
         CollectDecorators();
+        // 本轮估算基准取上一轮量测的平均值（本轮量测会更新条目，下一轮生效并收敛）。
+        RefreshEstimateFallback();
         var virtualizing = IsVirtualizing;
         // Auto 列先按无限宽查询自然尺寸；短文档须把该约束传给图片和文本。
         var width = double.IsFinite(availableSize.Width) || !virtualizing ? availableSize.Width : _lastWidth;
@@ -592,10 +619,19 @@ public class WindowedStackPanel : Panel
 
                 if (entry.Realized)
                 {
+                    var previousMeasuredSize = entry.Measured ? entry.Size : -1d;
                     entry.Control.Measure(new Size(width, double.PositiveInfinity));
                     var desired = entry.Control.DesiredSize;
                     entry.Size = desired.Height;
                     entry.Measured = true;
+                    // 高度振荡检测：已量测条目在同一布局循环的多轮重放间高度反复变化，
+                    // 会令 extent 振荡 → 无限布局循环（表现为滚动到某处 UI 线程持续满载）。
+                    // 记录变化条目（节流由调用方日志层处理），供定位振荡源头。
+                    if (previousMeasuredSize >= 0 && Math.Abs(previousMeasuredSize - desired.Height) > 0.5)
+                    {
+                        OscillatingEntry?.Invoke(this, (i, previousMeasuredSize, desired.Height,
+                            entry.Control.GetType().Name, entry.Control.Classes.ToString() ?? string.Empty));
+                    }
                     maxWidth = Math.Max(maxWidth, desired.Width);
                 }
 
@@ -712,6 +748,7 @@ public class WindowedStackPanel : Panel
         }
         else if (change.Property == SpacingProperty || change.Property == EstimatedItemHeightProperty)
         {
+            RefreshEstimateFallback();
             _layoutIndexDirty = true;
         }
     }
@@ -983,8 +1020,49 @@ public class WindowedStackPanel : Panel
         return Children.Count;
     }
 
+    /// <summary>
+    /// 跨切换块高度缓存：块指纹 → 量测高度（按宽度桶隔离）。虚拟化的 extent 估算失真
+    /// 会引发锚点补偿风暴（滚轮 offset 被补偿改写数百 px，缩略条脱节）——切回已读文档时
+    /// 按指纹预填真实高度，extent 从首帧即准确，风暴消失。思路同 StreamMark 块结果缓存。
+    /// </summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(ulong Hash, int WidthBucket), double> s_heightCache = new();
+
+    public static void CacheItemHeight(ulong hash, int widthBucket, double height)
+    {
+        if (height > 1)
+        {
+            s_heightCache[(hash, widthBucket)] = height;
+        }
+    }
+
+    /// <summary>按控件引用找到条目并预填缓存高度（未量测才填，量测值永远优先）。</summary>
+    public bool TryPrefillItemHeight(Control control, ulong hash, int widthBucket)
+    {
+        var entry = _entries.FirstOrDefault(candidate => ReferenceEquals(candidate.Control, control));
+        if (entry is null || entry.Measured)
+        {
+            return false;
+        }
+        if (!s_heightCache.TryGetValue((hash, widthBucket), out var height) || height <= 1)
+        {
+            return false;
+        }
+        entry.Size = height;
+        entry.Measured = true;
+        _layoutIndexDirty = true;
+        return true;
+    }
+
+    /// <summary>高度振荡诊断：条目已量测后尺寸仍变化的回调（宿主注入日志）。</summary>
+    public static event Action<WindowedStackPanel, (int Index, double Old, double New, string TypeName, string Classes)>? OscillatingEntry;
+
+    /// <summary>当前估算基准：上一轮量测平均值（MeasureOverride 开始时刷新），初始跟随 EstimatedItemHeight。</summary>
+    private double _estimateFallbackHeight = 24d;
+
+    private void RefreshEstimateFallback() => _estimateFallbackHeight = MeasuredAverageHeight;
+
     private double ResolveSize(ItemEntry entry) =>
-        entry.Measured ? entry.Size : Math.Max(0, EstimatedItemHeight);
+        entry.Measured ? entry.Size : Math.Max(0, _estimateFallbackHeight);
 
     /// <summary>条目在文档空间里实际占的高：自身槽位加上挂在它身上的装饰。</summary>
     private double BandSize(int index) =>

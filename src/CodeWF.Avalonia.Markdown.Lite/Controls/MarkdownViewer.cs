@@ -101,7 +101,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     // 优先级分帧续建（Avalonia 布局随子项追加自然增长），滚动逼近未建区时在滚动事件里
     // 同步插队补一块。世代号作废挂起的续建帧；同文档重渲染（主题/字号/缩放）不走分帧。
     private const int ChunkedBuildSyncBlocks = 40;
-    private const int ChunkedBuildChunkSize = 24;
+    private const int ChunkedBuildChunkSize = 12;
     private const long ChunkedBuildBoostIntervalMs = 50;
     private int _chunkedBuildGeneration;
     private int _chunkedBuildNextModelIndex;
@@ -144,12 +144,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableCodeBlockFolding), true);
 
     /// <summary>
-    /// 文档宿主的块虚拟化开关；默认开启——巨文档（数千块）全量物化的真实成本
-    /// （真实字体/图片/代码高亮）远超 headless 口径，视口窗口化是正确取舍。
-    /// 视口空白由量测后重放机制兜底（V2.1.0.0），发布门禁布局探针断言零空白带。
+    /// 文档宿主的块虚拟化开关；默认关闭——对齐 StreamMark：块已轻量化（段控件）后
+    /// 全量布局的 extent 永远精确（无估算/无锚点补偿），滚动条与内容严格同步；
+    /// 巨文档切换的流畅由分帧建块保证。虚拟化仅流式输出等明确场景显式开启。
     /// </summary>
     public static readonly StyledProperty<bool> EnableVirtualizationProperty =
-        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), true);
+        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), false);
 
     /// <summary>
     /// 启用虚拟化的最小块数量；低于该值时按普通面板渲染，避免小文档付出额外开销。
@@ -882,14 +882,35 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             panel.ScrollHost ??= ResolveScrollHost();
             // 只有重块参与离屏保留：轻量段落照常解体，内存占用最小。
             panel.KeepAliveCandidateResolver = IsHeavyBlockAt;
-            if (panel.ScrollHost is { } host)
-            {
-                host.ScrollChanged += OnViewerScrollHostChanged;
-                _documentHost.DetachedFromVisualTree += (_, _) => host.ScrollChanged -= OnViewerScrollHostChanged;
-            }
+            SubscribeViewerScrollHost();
         }
 
         RenderDocument(MarkdownRenderMode.Full);
+    }
+
+    private ScrollViewer? _subscribedViewerScrollHost;
+
+    /// <summary>
+    /// 订阅滚动宿主的 ScrollChanged（滚动驱动：虚拟化窗口跟随、阅读采样、分帧插队）。
+    /// 幂等：宿主变化时先退订旧宿主。attach/detach 对称，布局切换重挂后恢复订阅——
+    /// 旧实现 detach 一刀切取消且永不恢复，切换几次后滚动驱动全灭。
+    /// </summary>
+    private void SubscribeViewerScrollHost()
+    {
+        var host = _virtualizingHost?.ScrollHost ?? ResolveScrollHost();
+        if (ReferenceEquals(host, _subscribedViewerScrollHost))
+        {
+            return;
+        }
+        if (_subscribedViewerScrollHost is { } old)
+        {
+            old.ScrollChanged -= OnViewerScrollHostChanged;
+        }
+        _subscribedViewerScrollHost = host;
+        if (host is not null)
+        {
+            host.ScrollChanged += OnViewerScrollHostChanged;
+        }
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -904,6 +925,9 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         I18nManager.Instance.ResourcesChanged += OnCultureChanged;
         // 控件离开界面期间语言可能已改变，重新挂载时同步菜单文案。
         UpdateDefaultContextMenu();
+        // 重挂时恢复滚动订阅：旧实现只在 OnApplyTemplate 订阅一次、detach 时一刀切取消，
+        // 布局切换/窗格隐藏再显示后永不恢复——滚动驱动全灭（滚动条不随内容）。
+        SubscribeViewerScrollHost();
         QueueRenderDocument(MarkdownRenderMode.Full);
     }
 
@@ -995,8 +1019,28 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// 并解除上一次的固定。这样滚动方向的窗口外边界始终留着一个尺寸已知的驻留块，
     /// 变高块（图片、图表、公式）量测带来的高度变化不会让视口内容整体跳动。
     /// </summary>
+    private long _lastScrollDiagnosticsTick;
+
+    /// <summary>滚动诊断输出钩子（宿主注入，如应用侧接 Logger）；参数=宿主、诊断行。</summary>
+    public static event Action<WindowedStackPanel, string>? ScrollDiagnostics;
+
     private void OnViewerScrollHostChanged(object? sender, ScrollChangedEventArgs e)
     {
+        // 滚动仪表（节流 600ms）：offset/extent/viewport/已物化/估算基准——
+        // 用于定位「滚动条不随内容滚动」的脱节机理（extent 失真/锚点补偿）。
+        var now = Environment.TickCount64;
+        if (now - _lastScrollDiagnosticsTick > 600)
+        {
+            _lastScrollDiagnosticsTick = now;
+            var scrollHost = _virtualizingHost?.ScrollHost;
+            if (scrollHost is not null && _virtualizingHost is { } virtualHost)
+            {
+                ScrollDiagnostics?.Invoke(virtualHost,
+                    $"offset={scrollHost.Offset.Y:F0} extent={scrollHost.Extent.Height:F0} viewport={scrollHost.Viewport.Height:F0} " +
+                    $"realized={virtualHost.RealizedItemCount}/{virtualHost.ItemCount} 估算基准={virtualHost.EstimatedItemHeight:F0} 虚拟化={virtualHost.IsVirtualizing}");
+            }
+        }
+
         // 分帧建块进行中：滚动事件同步插队补一块（游标即互斥，不会重复或乱序），
         // 让已建区追上滚动位置，用户不会滚进未建的空白区。
         if (_chunkedBuildActive)
@@ -1159,6 +1203,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         foreach (var renderedBlock in CreateRenderedBlocks(_renderedModel.Blocks, text))
         {
             AddBlockControl(renderedBlock.Control);
+            PrefillCachedHeight(renderedBlock);
             _renderedBlocks.Add(renderedBlock);
             ApplyBlockStyleContext(renderedBlock.Control, _renderedBlocks.Count - 1, _renderedModel);
         }
@@ -1166,6 +1211,46 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         RefreshSelectionBlocks(preserveSelection: sameDocument);
         InvalidateDocumentLayout();
         ReapplySearchIfActive();
+        StoreBlockHeightsToCache();
+    }
+
+    /// <summary>宽度桶：缓存键按宿主宽度分桶，避免不同限宽下的高度互相污染。</summary>
+    private int HeightWidthBucket() =>
+        (int)Math.Clamp((_documentHost?.Bounds.Width ?? 900) / 240, 0, 20);
+
+    /// <summary>块指纹命中高度缓存时预填条目高度（切回已读文档 extent 首帧即准确）。</summary>
+    private void PrefillCachedHeight(RenderedBlock renderedBlock)
+    {
+        if (_virtualizingHost is { } host)
+        {
+            host.TryPrefillItemHeight(renderedBlock.Control, renderedBlock.ContentHash, HeightWidthBucket());
+        }
+    }
+
+    /// <summary>
+    /// 布局稳定后把条目量测高度写入跨切换缓存（索引与 _renderedBlocks 一一对应，
+    /// GetItemHeight 含装饰高，作为该块的估算/预填值）。
+    /// </summary>
+    private void StoreBlockHeightsToCache()
+    {
+        if (_virtualizingHost is not { } host || _renderedBlocks.Count == 0)
+        {
+            return;
+        }
+
+        var bucket = HeightWidthBucket();
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_virtualizingHost is not { } current || current != host) return;
+            for (var i = 0; i < Math.Min(_renderedBlocks.Count, current.ItemCount); i++)
+            {
+                var height = current.GetItemHeight(i);
+                if (height > 1)
+                {
+                    WindowedStackPanel.CacheItemHeight(_renderedBlocks[i].ContentHash, bucket, height);
+                }
+            }
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>
@@ -1187,6 +1272,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             RefreshSelectionBlocks(preserveSelection: false);
             InvalidateDocumentLayout();
             ReapplySearchIfActive();
+            StoreBlockHeightsToCache();
             return;
         }
 
@@ -1194,6 +1280,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         foreach (var renderedBlock in CreateRenderedBlocks(slice, _renderedMarkdown, _chunkedBuildTotalBlocks))
         {
             AddBlockControl(renderedBlock.Control);
+            PrefillCachedHeight(renderedBlock);
             _renderedBlocks.Add(renderedBlock);
             ApplyBlockStyleContext(renderedBlock.Control, _renderedBlocks.Count - 1, _renderedModel);
         }
@@ -2079,6 +2166,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
 
     void Rendering.IMarkdownRenderContext.RaiseLinkClicked(MarkdownLinkClickEventArgs args) =>
         LinkClicked?.Invoke(this, args);
+
+    /// <summary>TOC 条目被点击（标题所在源码行，1 起始）；宿主订阅后滚动定位。</summary>
+    public event EventHandler<int>? TocEntryClicked;
+
+    void Rendering.IMarkdownRenderContext.RaiseTocEntryClicked(int line) =>
+        TocEntryClicked?.Invoke(this, line);
 
     // 块绑定的视图状态（折叠、换行、高亮会话）：键 = 块源码起始偏移。
     // 存放在 Viewer 而非控件上，因此虚拟化回收、块重建、主题切换（同文档全量重渲染）

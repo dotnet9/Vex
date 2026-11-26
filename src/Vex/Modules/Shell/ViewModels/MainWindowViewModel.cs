@@ -1040,15 +1040,20 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private int _outlineBuildVersion;
 
+    private int _derivedStateVersion;
+
     private void RefreshMarkdownDerivedState()
     {
         PublishWorkspaceDocumentState();
-        RefreshDocumentInfo();
-        // 大纲构建是全文 Markdig 二次解析（316KB 实测 UI 线程 373ms，是打开目录/切换文件
-        // 顿挫的最大单段）。移到后台线程，带版本守卫：慢结果不覆盖新文档的大纲；
-        // 大纲晚几百毫秒出现无感，冻结有感。
+        // 派生态两项重活全部移出 UI 线程（316KB 实测：字数统计+大纲解析合计数百毫秒，
+        // 是打开目录/切换文件顿挫的最大单段）。后台一次算齐，回 UI 线程应用，
+        // 版本守卫丢弃过期结果。大纲/字数晚几百毫秒出现无感，冻结有感。
         var version = ++_outlineBuildVersion;
         var markdown = Markdown;
+        var document = _document;
+        var lastSaved = _lastSavedMarkdown;
+        var guideDocument = _guideDocument;
+        var draftsEnabled = _settingsStore.Current.RecoveryDrafts != false;
         Task.Run(() =>
         {
             IReadOnlyList<MarkdownOutlineItem> items;
@@ -1061,6 +1066,7 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                 CodeWF.Toolkit.Logging.Logger.Debug("大纲后台构建失败: " + error.Message);
                 return;
             }
+            var statistics = _statisticsService.Count(markdown);
             Dispatcher.UIThread.Post(() =>
             {
                 if (version != _outlineBuildVersion || _markdown != markdown)
@@ -1068,6 +1074,11 @@ public sealed partial class MainWindowViewModel : ReactiveObject
                     return;
                 }
                 CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new OutlineItemsChangedCommand(items));
+                DocumentInfo.Refresh(document, markdown, lastSaved, statistics);
+                if (guideDocument is null && draftsEnabled)
+                {
+                    _drafts.QueueSave(document, markdown, lastSaved);
+                }
             });
         });
     }
@@ -1143,8 +1154,6 @@ public sealed partial class MainWindowViewModel : ReactiveObject
 
     private void RefreshDocumentInfo()
     {
-        DocumentInfo.Refresh(_document, Markdown, _lastSavedMarkdown, _statisticsService.Count(Markdown));
-        if (_guideDocument is null && _settingsStore.Current.RecoveryDrafts != false) _drafts.QueueSave(_document, Markdown, _lastSavedMarkdown);
     }
 
     private void SyncDocumentFileList(string path, bool revealPath = true)

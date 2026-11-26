@@ -529,12 +529,40 @@ public partial class MarkdownLiveEditorView : UserControl
     public void SetText(string? markdown) => SetText(markdown, ImageBasePath);
 
     /// <summary>同时载入正文和图片基址，只重建一次文档；不触发 <see cref="MarkdownChanged"/>。</summary>
+    /// <summary>巨文档后台解析世代：新 SetText 作废在途结果。</summary>
+    private int _asyncParseGeneration;
+
+    /// <summary>巨文档后台解析阈值：超过即解析转后台线程（真机 316KB 实测 UI 线程 165ms，首切冻结大头）。</summary>
+    private const int AsyncParseThreshold = 200_000;
+
     public void SetText(string? markdown, string? imageBasePath)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
         CodeWF.Toolkit.Logging.Logger.Debug("SetText len=" + (markdown?.Length ?? -1));
         ContextSourceLine = 1;
         _suppressChanged = true;
+        if (markdown?.Length > AsyncParseThreshold)
+        {
+            // 巨文档：解析转后台线程（真机实测 UI 线程 165ms），完成后回 UI 线程应用；
+            // 世代守卫丢弃过期结果（连续切换不堆积）。小文档走同步路径不变。
+            var generation = ++_asyncParseGeneration;
+            var pending = markdown;
+            var pendingBasePath = imageBasePath;
+            _suppressChanged = false;
+            System.Threading.Tasks.Task.Run(() =>
+            {
+                var models = MarkdownBlockParser.Parse(pending);
+                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (generation != _asyncParseGeneration)
+                    {
+                        return;
+                    }
+                    ApplyParsedDocument(models, pending, pendingBasePath!, sw);
+                }, global::Avalonia.Threading.DispatcherPriority.Background);
+            });
+            return;
+        }
         try
         {
             ClearDocumentSelection();
@@ -555,6 +583,46 @@ public partial class MarkdownLiveEditorView : UserControl
             RebuildBlocks();
             CodeWF.Toolkit.Logging.Logger.Debug(
                 $"SetText 分解 len={markdown?.Length ?? -1} parse={parseMs}ms rebuild={sw.ElapsedMilliseconds - parseMs}ms 总={sw.ElapsedMilliseconds}ms 块数={_models.Count}");
+            if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
+            {
+                _pendingBlankFocus = true;
+                TryConsumePendingBlankFocus();
+            }
+            else
+            {
+                _pendingBlankFocus = false;
+            }
+            if (!_restoringHistory) { _undo.Clear(); _redo.Clear(); _undoSeparate = true; }
+            _lastSnapshot = CaptureSnapshot();
+        }
+        finally
+        {
+            _suppressChanged = false;
+        }
+    }
+
+    /// <summary>后台解析完成后的 UI 线程应用（与同步路径同序：重建宿主 → 状态复位 → 快照）。</summary>
+    private void ApplyParsedDocument(
+        System.Collections.Generic.IReadOnlyList<MarkdownBlockModel> models,
+        string markdown,
+        string imageBasePath,
+        System.Diagnostics.Stopwatch sw)
+    {
+        _suppressChanged = true;
+        try
+        {
+            ClearDocumentSelection();
+            _selectionContentStarts = null;
+            ImageBasePath = imageBasePath;
+            _models.Clear();
+            _activeIndex = -1;
+            _models.AddRange(models);
+            var parseMs = sw.ElapsedMilliseconds;
+            _core.EnsureFirstBlock();
+            _textBuffer.Reset();
+            RebuildBlocks();
+            CodeWF.Toolkit.Logging.Logger.Debug(
+                $"SetText 分解(异步) len={markdown?.Length ?? -1} parse+等待={parseMs}ms rebuild={sw.ElapsedMilliseconds - parseMs}ms 总={sw.ElapsedMilliseconds}ms 块数={_models.Count}");
             if (_models.Count == 1 && _models[0].Kind == MarkdownBlockKind.Paragraph && _models[0].Text.Length == 0)
             {
                 _pendingBlankFocus = true;

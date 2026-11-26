@@ -170,8 +170,10 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
     });
 
     [Fact]
-    public void DefaultViewerKeepsViewportRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
+    public void DefaultViewerKeepsEveryParagraphRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
     {
+        // 默认全量布局语义（对齐 StreamMark）：块轻量化后全量量测，extent 永远精确，
+        // 滚动条与内容严格同步；长文档跳转+缩放全程视口全覆盖。
         var blocks = Enumerable.Range(0, 450)
             .Select(index => $"Paragraph {index} is ordinary supported Markdown content.");
         var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
@@ -195,23 +197,33 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
             }
 
             var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
-            Assert.True(viewer.EnableVirtualization);
-            Assert.True(panel.IsVirtualizing);
-            // 虚拟化语义：只物化窗口附近条目，整体远小于全量。
-            Assert.True(panel.RealizedItemCount < panel.ItemCount);
+            Assert.False(viewer.EnableVirtualization);
+            Assert.False(panel.IsVirtualizing);
+            Assert.Equal(450, panel.ItemCount);
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
 
-            // 跳到块 370：视口内该块必须已物化且内容正确（量测后重放窗口判定兜底）。
+            var paragraph = panel.GetRealizedItem(370) switch
+            {
+                MarkdownTextSegmentView segment => (Control)segment,
+                SelectableTextBlock textBlock => textBlock,
+                _ => throw new Xunit.Sdk.XunitException($"块 370 应为段控件或可选文本块，实际 {panel.GetRealizedItem(370)?.GetType().Name}")
+            };
+            Assert.Equal("Paragraph 370 is ordinary supported Markdown content.",
+                paragraph is MarkdownTextSegmentView seg ? seg.PlainText
+                    : ((SelectableTextBlock)paragraph).Inlines?.OfType<Run>().Single().Text);
             Assert.True(panel.TryGetItemTop(370, out var paragraphTop));
             scroll.Offset = new Vector(0, paragraphTop);
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
 
-            AssertViewportFullyRealized(panel, scroll);
-            AssertViewportContentReady(panel, scroll);
+            Assert.True(paragraphTop >= scroll.Offset.Y);
+            Assert.True(paragraphTop + paragraph.DesiredSize.Height <= scroll.Offset.Y + scroll.Viewport.Height);
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
 
             window.Width = 420;
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
+            Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
             AssertViewportFullyRealized(panel, scroll);
             AssertViewportContentReady(panel, scroll);
         }

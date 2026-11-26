@@ -109,7 +109,48 @@ public partial class MarkdownPreviewView : UserControl
         // 持续改写偏移数秒——表现正是「滚动后点击视图漂移、光标下文字换了位导致误选」。
         PreviewScrollViewer.AddHandler(PointerWheelChangedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
         PreviewScrollViewer.AddHandler(PointerPressedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
+        // 滚轮步长对齐浏览器/Typora（~120px/格）：默认 50px/格在巨文档下内容与缩略条
+        // 都几乎不动（339K px 文档每格仅挪 0.015% 轨道），观感即「滚动条不跟随」。
+        PreviewScrollViewer.AddHandler(PointerWheelChangedEvent, (sender, e) =>
+        {
+            var delta = e.Delta.Y;
+            if (delta == 0) return;
+            var max = Math.Max(0, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
+            var target = Math.Clamp(PreviewScrollViewer.Offset.Y - delta * 120d, 0, max);
+            PreviewScrollViewer.Offset = new global::Avalonia.Vector(PreviewScrollViewer.Offset.X, target);
+            e.Handled = true;
+        }, RoutingStrategies.Tunnel);
+        // 滚轮追踪仪表（诊断「滚轮动内容但滚动条不动」）：窗格根 Tunnel 记录事件来源、
+        // 是否已被处理、当时 offset；并在 300ms 后补记 offset 是否实际变化。
+        this.AddHandler(PointerWheelChangedEvent, (sender, e) =>
+        {
+            var now = Environment.TickCount64;
+            if (now - _lastWheelDiagTick < 350) return;
+            _lastWheelDiagTick = now;
+            var before = PreviewScrollViewer.Offset.Y;
+            var paneHash = GetHashCode();
+            var scrollHash = PreviewScrollViewer.GetHashCode();
+            var visible = IsEffectivelyVisible;
+            CodeWF.Toolkit.Logging.Logger.Debug(
+                $"滚轮T pane={paneHash} sv={scrollHash} 可见={visible} src={(e.Source ?? (object)"null").GetType().Name} delta={e.Delta.Y} 前offset={before:F0} extent={PreviewScrollViewer.Extent.Height:F0}");
+            Dispatcher.UIThread.Post(() =>
+            {
+                CodeWF.Toolkit.Logging.Logger.Debug(
+                    $"滚轮后 pane={paneHash} 后offset={PreviewScrollViewer.Offset.Y:F0} extent={PreviewScrollViewer.Extent.Height:F0} 变化={Math.Abs(PreviewScrollViewer.Offset.Y - before) > 0.5}");
+            }, DispatcherPriority.Background);
+        }, RoutingStrategies.Tunnel);
+        // 滚动条拖动对照：ScrollBar.Value 与 Offset 同源，日志用于核对用户看到的缩略条位置。
+        PreviewScrollViewer.ScrollChanged += (_, _) =>
+        {
+            var now = Environment.TickCount64;
+            if (now - _lastScrollDiagTick < 350) return;
+            _lastScrollDiagTick = now;
+            CodeWF.Toolkit.Logging.Logger.Debug(
+                $"滚动C pane={GetHashCode()} offset={PreviewScrollViewer.Offset.Y:F0} extent={PreviewScrollViewer.Extent.Height:F0} " +
+                $"viewport={PreviewScrollViewer.Viewport.Height:F0} 可见={IsEffectivelyVisible}");
+        };
         DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
+        DetachedFromVisualTree += (_, _) => PreviewMarkdownViewer.TocEntryClicked -= OnTocEntryClicked;
         // 大纲跳转不经过预览视图模型，直接订阅总线，避免被「属性值未变」过滤掉。
         DetachedFromVisualTree += (_, _) =>
         {
@@ -137,9 +178,32 @@ public partial class MarkdownPreviewView : UserControl
         EventBus.Default.Subscribe(this);
         PreviewMarkdownViewer.TaskWriteBackRequested -= OnTaskWriteBackRequested;
         PreviewMarkdownViewer.TaskWriteBackRequested += OnTaskWriteBackRequested;
+        PreviewMarkdownViewer.TocEntryClicked -= OnTocEntryClicked;
+        PreviewMarkdownViewer.TocEntryClicked += OnTocEntryClicked;
+        CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel.OscillatingEntry -= OnOscillatingEntry;
+        CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel.OscillatingEntry += OnOscillatingEntry;
         // 阅读位置由库统一按「块序号 + 块内比例」采集与恢复，这里只需把滚动宿主交给 Viewer。
         PreviewMarkdownViewer.ScrollHost = PreviewScrollViewer;
     }
+
+    // 高度振荡：已量测条目尺寸反复变化 = extent 振荡布局循环的源头，落盘定位块类型。
+    private long _lastOscillationLogTick;
+    private void OnOscillatingEntry(CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel panel,
+        (int Index, double Old, double New, string TypeName, string Classes) args)
+    {
+        var now = Environment.TickCount64;
+        if (now - _lastOscillationLogTick < 500) return;
+        _lastOscillationLogTick = now;
+        CodeWF.Toolkit.Logging.Logger.Debug(
+            $"高度振荡 idx={args.Index} {args.Old:F0}->{args.New:F0} type={args.TypeName} classes=[{args.Classes}]");
+    }
+
+    private long _lastWheelDiagTick;
+    private long _lastScrollDiagTick;
+
+    // 滚动诊断：控件侧节流输出，接 Logger 落盘（定位滚动条脱节机理）。
+    private static void OnScrollDiagnostics(CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel panel, string line) =>
+        CodeWF.Toolkit.Logging.Logger.Debug("滚动诊断 " + line);
 
     private void OnDisplayMetricsChanged(object? sender, EventArgs args)
     {
@@ -158,6 +222,11 @@ public partial class MarkdownPreviewView : UserControl
     }
 
     // 预览里点击任务勾选框：库返回新 Markdown 与变更区间，交给编辑器按区间回写。
+    // 阅读视图 [TOC] 条目点击 → 转大纲跳转命令滚动定位标题行（与大纲面板同一通道）。
+    private void OnTocEntryClicked(object? sender, int line) =>
+        CodeWF.Toolkit.EventBus.EventBus.Default.Publish(
+            new Vex.Core.Messaging.NavigateToLineCommand(line));
+
     private static void OnTaskWriteBackRequested(object? sender, CodeWF.Avalonia.Markdown.Shared.Rendering.MarkdownTaskWriteResult result)
     {
         CodeWF.Toolkit.EventBus.EventBus.Default.Publish(new Core.Messaging.MarkdownTaskWriteBackCommand(
