@@ -1,6 +1,8 @@
-﻿<Solution>
+<Solution>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
+    <File Path="build/ProjectDefaults.props" />
+    <File Path="build/Versions.props" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="docs/更新日志.md" />
@@ -11,11 +13,9 @@
     <File Path="docs/概要设计.md" />
     <File Path="docs/详细设计.md" />
     <File Path="LICENSE" />
+    <File Path="NuGet.Config" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="src/Vex.Core/Vex.Core.csproj" />
-  <Project Path="src/Vex.Git/Vex.Git.csproj" />
-  <Project Path="src/Vex/Vex.csproj" />
   <Folder Name="/Controls/">
     <Project Path="src/CodeWF.Avalonia.Markdown.Core/CodeWF.Avalonia.Markdown.Core.csproj" />
     <Project Path="src/CodeWF.Avalonia.Markdown.Lite/CodeWF.Avalonia.Markdown.Lite.csproj" />
@@ -27,4 +27,7 @@
     <Project Path="src/Vex.Core.Tests/Vex.Core.Tests.csproj" />
     <Project Path="tests/Vex.Mcp.Tests/Vex.Mcp.Tests.csproj" />
   </Folder>
+  <Project Path="src/Vex.Core/Vex.Core.csproj" />
+  <Project Path="src/Vex.Git/Vex.Git.csproj" />
+  <Project Path="src/Vex/Vex.csproj" />
 </Solution>
