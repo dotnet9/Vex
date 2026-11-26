@@ -161,8 +161,11 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Choice(page, VexL.PrefIndent, p, nameof(p.IndentSize), [(LF("Vex.VexL.PrefSpaceUnit", 2), 2), (LF("Vex.VexL.PrefSpaceUnit", 4), 4), (LF("Vex.VexL.PrefSpaceUnit", 8), 8)]);
                 Heading(page, "Vex.VexL.PrefCodeAndSource");
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));
-                Toggle(page, "Vex.VexL.PrefSourceLineNumbers", _model.Display, nameof(_model.Display.ShowLineNumbers));
+                Toggle(page, VexL.PrefSourceLineNumbers, _model.Display, nameof(_model.Display.ShowLineNumbers));
                 Toggle(page, VexL.PrefOutlineNumbers, _model.Outline, nameof(_model.Outline.ShowOutlineNumbers));
+                // 阅读视图长文档虚拟化（配置默认开）：超大文档只为视口附近建块，打开/切换秒开；
+                // 关闭则整篇物化（extent 全程精确，代价是长文档打开/切换卡顿数秒）。
+                Toggle(page, VexL.PrefReadingVirtualization, p, nameof(p.ReadingVirtualization));
                 break;
             case "images":
                 Toggle(page, VexL.PrefImageCopy, p, nameof(p.ImageCopy)); Toggle(page, VexL.PrefImageRelative, p, nameof(p.ImageRelative));

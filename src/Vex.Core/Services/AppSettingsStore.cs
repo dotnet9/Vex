@@ -1,10 +1,11 @@
-﻿using CodeWF.Toolkit.Files.Helpers;
+using CodeWF.Toolkit.Files.Helpers;
 using Vex.Core.Models;
 
 namespace Vex.Core.Services;
 
 public sealed class AppSettingsStore : IAppSettingsStore
 {
+
     private const string ThemeKey = nameof(AppSettings.ThemeKey);
     private const string PaletteKey = nameof(AppSettings.PaletteKey);
     private const string TypographyKey = nameof(AppSettings.TypographyKey);
@@ -75,6 +76,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string SyntaxHighlight = nameof(AppSettings.SyntaxHighlight);
     private const string SyntaxAutoLinks = nameof(AppSettings.SyntaxAutoLinks);
     private const string SyntaxSoftBreaks = nameof(AppSettings.SyntaxSoftBreaks);
+    private const string ReadingVirtualization = nameof(AppSettings.ReadingVirtualization);
     private const string ImageCopy = nameof(AppSettings.ImageCopy);
     private const string ImageRelative = nameof(AppSettings.ImageRelative);
     private const string ImageFolder = nameof(AppSettings.ImageFolder);
@@ -192,6 +194,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             SyntaxHighlight = Get<bool?>(configuration, SyntaxHighlight),
             SyntaxAutoLinks = Get<bool?>(configuration, SyntaxAutoLinks),
             SyntaxSoftBreaks = Get<bool?>(configuration, SyntaxSoftBreaks),
+            ReadingVirtualization = Get<bool?>(configuration, ReadingVirtualization) ?? true,
             ImageCopy = Get<bool?>(configuration, ImageCopy),
             ImageRelative = Get<bool?>(configuration, ImageRelative),
             ImageFolder = Get<string>(configuration, ImageFolder) ?? "assets",
@@ -299,6 +302,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [SyntaxHighlight] = settings.SyntaxHighlight,
                 [SyntaxAutoLinks] = settings.SyntaxAutoLinks,
                 [SyntaxSoftBreaks] = settings.SyntaxSoftBreaks,
+                [ReadingVirtualization] = settings.ReadingVirtualization,
                 [ImageCopy] = settings.ImageCopy,
                 [ImageRelative] = settings.ImageRelative,
                 [ImageFolder] = settings.ImageFolder,

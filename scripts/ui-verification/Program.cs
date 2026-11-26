@@ -696,7 +696,25 @@ void VerifyInside(Control control, Control host, string description)
     Check(control.IsEffectivelyVisible && control.Bounds.Width > 0 && control.Bounds.Height > 0
         && position.X >= -1 && position.Y >= -1 && position.X + control.Bounds.Width <= host.Bounds.Width + 1
         && position.Y + control.Bounds.Height <= host.Bounds.Height + 1,
-        $"{description}; {control.Bounds.Size} at {position}, host {host.Bounds.Size}");
+            $"{description}; {control.Bounds.Size} at {position}, host {host.Bounds.Size}");
+}
+
+// 虚拟化阅读的真实需求：与视口相交的每块都已物化且内容就绪（非空延迟块），滚动不得露出未建块的空白。
+// 返回未物化与空内容块的序号串；空串表示视口完整。
+(string Unrealized, string Empty) ViewportGaps(CodeWF.Avalonia.Markdown.Controls.MarkdownViewer viewer, ScrollViewer scroll)
+{
+    var panel = viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().Single();
+    var viewportTop = scroll.Offset.Y;
+    var viewportBottom = viewportTop + scroll.Viewport.Height;
+    List<int> unrealized = [], empty = [];
+    for (var index = 0; index < panel.ItemCount; index++)
+    {
+        if (!panel.TryGetItemTop(index, out var top)) continue;
+        if (top + panel.GetItemHeight(index) <= viewportTop || top >= viewportBottom) continue;
+        if (panel.GetRealizedItem(index) is null) unrealized.Add(index);
+        else if (panel.GetRealizedItem(index) is Decorator { Child: null }) empty.Add(index);
+    }
+    return (string.Join(",", unrealized), string.Join(",", empty));
 }
 
 void Pump(Task? pending = null)
@@ -1676,11 +1694,31 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         Console.WriteLine($"LONG-DOCUMENT-READING {round}: {anchor} -> {restored}");
         Check(anchor.BlockIndex == restored.BlockIndex && Math.Abs(anchor.BlockRatio - restored.BlockRatio) < .05,
             "Deep reading anchor survives content/map presentation and return");
-        // 阅读默认全量布局（虚拟化显式开启才生效，虚拟化路径由库侧单测钉住）：
-        // 回到长文档后应整篇物化，物化数与模型块数一致。
-        Check(preview.RealizedBlockCount >= preview.CurrentModel.Blocks.Count,
-            "Returning to the long document keeps the full document materialized by default");
+        PumpUntil(() => { var gaps = ViewportGaps(preview, readingScroll); return gaps.Unrealized.Length == 0 && gaps.Empty.Length == 0; });
+        // 阅读默认虚拟化（配置 ReadingVirtualization，默认开）：回到长文档后保持虚拟化，且视口内每块都已
+        // 物化、内容就绪——不得滚进未建块的空白区。全量物化只在显式关闭开关时要求（见下方关闭轮）。
+        var virtualGaps = ViewportGaps(preview, readingScroll);
+        Check(preview.EnableVirtualization && preview.RealizedBlockCount < preview.CurrentModel.Blocks.Count,
+            $"Returning to the long document keeps reading virtualization on by default: {preview.RealizedBlockCount}/{preview.CurrentModel.Blocks.Count}");
+        Check(virtualGaps.Unrealized.Length == 0 && virtualGaps.Empty.Length == 0,
+            $"Every block in the reading viewport is realized with content after presentation: unrealized=[{virtualGaps.Unrealized}] empty=[{virtualGaps.Empty}]");
     }
+    // 关闭开关走全量布局：回到长文档后整篇物化，深阅读锚点同样保持。
+    var readingPreferences = app.Resolve<EditorPreferences>();
+    readingPreferences.ReadingVirtualization = false; Pump(); SettleRendering();
+    for (var step = 0; step < 30; step++) { readingScroll.Offset = new Vector(0, readingScroll.Offset.Y + 600); Pump(); }
+    SettleRendering();
+    var plainAnchor = preview.SaveReadingPosition()!.Value;
+    wb.StartPresentation(); Pump(); SettleRendering();
+    wb.NavigatePresentation(30); Pump(); wb.ShowPresentationMap(); Pump();
+    wb.StopPresentation(); Pump(); SettleRendering();
+    PumpUntil(() => preview.CurrentModel.Source == relapText);
+    var plainRestored = preview.SaveReadingPosition()!.Value;
+    Check(plainAnchor.BlockIndex == plainRestored.BlockIndex && Math.Abs(plainAnchor.BlockRatio - plainRestored.BlockRatio) < .05,
+        "Deep reading anchor survives presentation and return with reading virtualization off");
+    Check(!preview.EnableVirtualization && preview.RealizedBlockCount >= preview.CurrentModel.Blocks.Count,
+        $"Turning reading virtualization off keeps the full document materialized: {preview.RealizedBlockCount}/{preview.CurrentModel.Blocks.Count}");
+    readingPreferences.ReadingVirtualization = true; Pump(); SettleRendering();
     static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Descendants(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode node)
     { yield return node; foreach (var child in node.Children) foreach (var descendant in Descendants(child)) yield return descendant; }
 }

@@ -131,6 +131,13 @@ internal static class PreferencesVerification
         Control<Avalonia.Controls.Primitives.ToggleButton>(nameof(preferences.CodeWrap)).IsChecked = true; Render();
         var source = window.GetVisualDescendants().OfType<MarkdownEditorView>().Single();
         Check(source.Editor.WordWrap, "Editor settings update the attached source editor");
+        // 阅读长文档虚拟化开关（默认开）：偏好页必须渲染且随开关联动（长文档加载卡顿回归的宿主侧锚点）。
+        var virtualizationToggle = Control<Avalonia.Controls.Primitives.ToggleButton>(nameof(preferences.ReadingVirtualization));
+        Check(virtualizationToggle.IsChecked == true, "Reading virtualization toggle defaults to on in preferences");
+        virtualizationToggle.IsChecked = false; Render();
+        Check(preferences.ReadingVirtualization == false, "Reading virtualization toggle updates the saved preference");
+        virtualizationToggle.IsChecked = true; Render();
+        Check(preferences.ReadingVirtualization, "Reading virtualization toggle restores the default");
         view.SelectCategory("images"); Render();
         Control<TextBox>(nameof(preferences.ImageFolder)).Text = "media"; Render();
         Check(preferences.ImageFolder == "media", "Image directory edits persist");

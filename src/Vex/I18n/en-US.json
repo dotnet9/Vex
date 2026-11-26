@@ -970,6 +970,7 @@
       "PrefCodeSize": "Code font size",
       "PrefIndent": "Indent",
       "PrefWrap": "Wrap code lines",
+      "PrefReadingVirtualization": "Virtualize long documents in reading",
       "PrefMath": "Math expressions",
       "PrefChemistry": "Chemical expressions",
       "PrefDiagrams": "Mermaid diagrams",

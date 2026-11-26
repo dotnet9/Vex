@@ -125,6 +125,10 @@ public sealed record AppSettings
     public bool? SyntaxHighlight { get; init; }
     public bool? SyntaxAutoLinks { get; init; }
     public bool? SyntaxSoftBreaks { get; init; }
+
+    /// <summary>阅读视图长文档虚拟化：块数超过阈值后只为视口附近的块建控件，表格/代码/图片/图表/公式滚到才建。
+    /// 默认开启；关闭则整篇全量建块，长文档打开与切换会卡顿数秒。</summary>
+    public bool ReadingVirtualization { get; init; } = true;
     public bool? ImageCopy { get; init; }
     public bool? ImageRelative { get; init; }
     public string? ImageFolder { get; init; }
