@@ -26,6 +26,26 @@ internal sealed class MarkdownSelectionController
 	private MarkdownTextPoint? _active;
 	private bool _hasVisualSelection;
 	private readonly HashSet<MarkdownTextProjection> _selectedSegments = [];
+	private readonly HashSet<IMarkdownTextSelectionVisual> _selectedVisuals = [];
+
+	/// <summary>块控件子树内的自绘选区视觉（自绘文本段）：存在时接管命中与选区可视化。</summary>
+	private static IMarkdownTextSelectionVisual? FindSelectionVisual(Control control)
+	{
+		if (control is IMarkdownTextSelectionVisual self)
+		{
+			return self;
+		}
+
+		foreach (var descendant in control.GetVisualDescendants())
+		{
+			if (descendant is IMarkdownTextSelectionVisual visual)
+			{
+				return visual;
+			}
+		}
+
+		return null;
+	}
 
 	public bool HasSelection => _hasVisualSelection
 								&& _anchor.HasValue
@@ -220,6 +240,12 @@ internal sealed class MarkdownSelectionController
 
 	private int HitTestOffset(MarkdownSelectionBlock block, Point point)
 	{
+		// 自绘选区视觉接管：命中由段控件自己做 TextLayout 级命中测试。
+		if (FindSelectionVisual(block.Control) is { } visual)
+		{
+			return visual.HitTestOffset(point);
+		}
+
 		var projected = MarkdownTextProjections.Create(block.Control, block.PlainText).ToArray();
 		// 图表、图片等非文字块没有可投影的字形，端点沿用块模型的首尾。
 		if (projected.Length == 0)
@@ -299,10 +325,18 @@ internal sealed class MarkdownSelectionController
 		for (var i = start; i <= end; i++)
 		{
 			var block = _blocks[i];
-			var segments = MarkdownTextProjections.Create(block.Control, block.PlainText).ToArray();
-			if (segments.Length == 0) block.Control.Classes.Add(SelectedBlockClass);
 			var fromOffset = i == start ? from.Offset : 0;
 			var toOffset = i == end ? to.Offset : block.PlainText.Length;
+			// 自绘选区视觉接管：按块内纯文本区间绘制，不投影、不加整块选中类。
+			if (FindSelectionVisual(block.Control) is { } visual)
+			{
+				_selectedVisuals.Add(visual);
+				visual.ApplySelection(fromOffset, toOffset);
+				continue;
+			}
+
+			var segments = MarkdownTextProjections.Create(block.Control, block.PlainText).ToArray();
+			if (segments.Length == 0) block.Control.Classes.Add(SelectedBlockClass);
 			foreach (var textGroup in segments.Where(segment => segment.TextBlock is not null).GroupBy(segment => segment.TextBlock))
 			{
 				var text = textGroup.Key!;
@@ -336,6 +370,11 @@ internal sealed class MarkdownSelectionController
 			else MarkdownFormulaState.ClearSelection(segment.Control);
 		}
 		_selectedSegments.Clear();
+		foreach (var visual in _selectedVisuals)
+		{
+			visual.ClearSelection();
+		}
+		_selectedVisuals.Clear();
 
 		_hasVisualSelection = false;
 	}
