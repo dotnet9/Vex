@@ -141,13 +141,6 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             Instance = this;
-            // 日志定时清理：启动清一次只留最近 7 天，之后每 6 小时重复（Timer 保活防 GC）。
-            var logDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex", "logs");
-            Vex.Core.Services.LogCleanup.DeleteOldLogs(logDirectory, Vex.Core.Services.LogCleanup.DefaultRetention, DateTimeOffset.UtcNow);
-            _logCleanupTimer = new System.Threading.Timer(
-                _ => Vex.Core.Services.LogCleanup.DeleteOldLogs(logDirectory, Vex.Core.Services.LogCleanup.DefaultRetention, DateTimeOffset.UtcNow),
-                null, TimeSpan.FromHours(6), TimeSpan.FromHours(6));
             // 图片尺寸缓存跨会话持久化：应用重启后首轮滚动不再重演图片 0→满高跳变。
             CodeWF.Avalonia.Markdown.Controls.MarkdownImage.DimensionCachePathResolver = () =>
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -158,8 +151,6 @@ public partial class App : Application
         }
         base.OnFrameworkInitializationCompleted();
     }
-
-    private System.Threading.Timer? _logCleanupTimer;
 
     /// <summary>
     /// 在解析主窗口前先应用保存的主题：默认变体交给系统，避免任何早于

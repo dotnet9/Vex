@@ -20,6 +20,7 @@ internal sealed class Program
             {
                 DirectoryPath = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex", "logs"),
+                RetentionDays = 7,
             },
         });
         if (args is ["--verify-ui", var uiDirectory])
