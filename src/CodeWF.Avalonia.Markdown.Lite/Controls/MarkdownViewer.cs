@@ -97,6 +97,18 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     private bool _hasSelection;
     private double _lastScrollOffsetY;
 
+    // 换文档的分帧建块：首屏同步建前 ChunkedBuildSyncBlocks 块保首屏，其余按 Background
+    // 优先级分帧续建（Avalonia 布局随子项追加自然增长），滚动逼近未建区时在滚动事件里
+    // 同步插队补一块。世代号作废挂起的续建帧；同文档重渲染（主题/字号/缩放）不走分帧。
+    private const int ChunkedBuildSyncBlocks = 40;
+    private const int ChunkedBuildChunkSize = 24;
+    private const long ChunkedBuildBoostIntervalMs = 50;
+    private int _chunkedBuildGeneration;
+    private int _chunkedBuildNextModelIndex;
+    private int _chunkedBuildTotalBlocks;
+    private bool _chunkedBuildActive;
+    private long _chunkedBuildLastBoostTick;
+
     public static readonly StyledProperty<string?> MarkdownProperty =
         AvaloniaProperty.Register<MarkdownViewer, string?>(nameof(Markdown));
 
@@ -896,6 +908,10 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
+        // 作废挂起的分帧续建：控件离树后不再往已分离的宿主追加块。
+        _chunkedBuildGeneration++;
+        _chunkedBuildActive = false;
+
         if (Application.Current is { } app)
         {
             app.ActualThemeVariantChanged -= OnActualThemeVariantChanged;
@@ -980,6 +996,18 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// </summary>
     private void OnViewerScrollHostChanged(object? sender, ScrollChangedEventArgs e)
     {
+        // 分帧建块进行中：滚动事件同步插队补一块（游标即互斥，不会重复或乱序），
+        // 让已建区追上滚动位置，用户不会滚进未建的空白区。
+        if (_chunkedBuildActive)
+        {
+            var tick = Environment.TickCount64;
+            if (tick - _chunkedBuildLastBoostTick >= ChunkedBuildBoostIntervalMs)
+            {
+                _chunkedBuildLastBoostTick = tick;
+                BuildNextChunk(_chunkedBuildGeneration, ChunkedBuildChunkSize);
+            }
+        }
+
         if (_virtualizingHost is not { } host || _renderedBlocks.Count == 0)
         {
             return;
@@ -1111,6 +1139,22 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             return;
         }
 
+        // 换文档且块数超阈值且宿主未开虚拟化：首屏同步建前若干块，其余分帧续建——
+        // 消除一次性重建整篇控件树的切换顿挫；同文档重渲染（主题/字号/缩放）保持同步整建。
+        var totalBlocks = _renderedModel.Blocks.Count;
+        var useChunkedBuild = !sameDocument
+            && totalBlocks > ChunkedBuildSyncBlocks
+            && (_virtualizingHost is null || !_virtualizingHost.IsVirtualizing);
+        if (useChunkedBuild)
+        {
+            _chunkedBuildGeneration++;
+            _chunkedBuildNextModelIndex = 0;
+            _chunkedBuildTotalBlocks = totalBlocks;
+            _chunkedBuildActive = true;
+            BuildNextChunk(_chunkedBuildGeneration, Math.Min(ChunkedBuildSyncBlocks, totalBlocks));
+            return;
+        }
+
         foreach (var renderedBlock in CreateRenderedBlocks(_renderedModel.Blocks, text))
         {
             AddBlockControl(renderedBlock.Control);
@@ -1121,6 +1165,49 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         RefreshSelectionBlocks(preserveSelection: sameDocument);
         InvalidateDocumentLayout();
         ReapplySearchIfActive();
+    }
+
+    /// <summary>
+    /// 分帧续建一个切片：按模型块游标取切片渲染并追加（模型块与渲染块一一对应，含不可见占位），
+    /// 每帧刷新选区块表、布局与搜索；还有剩余时按 Background 优先级排下一帧，建完收尾。
+    /// 游标即互斥——滚动插队与挂起续建帧各自推进游标，不会重复或乱序。
+    /// </summary>
+    private void BuildNextChunk(int generation, int modelBlockCount)
+    {
+        if (generation != _chunkedBuildGeneration || _documentHost is null)
+        {
+            return;
+        }
+
+        var take = Math.Min(modelBlockCount, _chunkedBuildTotalBlocks - _chunkedBuildNextModelIndex);
+        if (take <= 0)
+        {
+            _chunkedBuildActive = false;
+            RefreshSelectionBlocks(preserveSelection: false);
+            InvalidateDocumentLayout();
+            ReapplySearchIfActive();
+            return;
+        }
+
+        var slice = _renderedModel.Blocks.Skip(_chunkedBuildNextModelIndex).Take(take);
+        foreach (var renderedBlock in CreateRenderedBlocks(slice, _renderedMarkdown, _chunkedBuildTotalBlocks))
+        {
+            AddBlockControl(renderedBlock.Control);
+            _renderedBlocks.Add(renderedBlock);
+            ApplyBlockStyleContext(renderedBlock.Control, _renderedBlocks.Count - 1, _renderedModel);
+        }
+        _chunkedBuildNextModelIndex += take;
+        RefreshSelectionBlocks(preserveSelection: false);
+        InvalidateDocumentLayout();
+        ReapplySearchIfActive();
+
+        if (_chunkedBuildNextModelIndex >= _chunkedBuildTotalBlocks)
+        {
+            _chunkedBuildActive = false;
+            return;
+        }
+        var next = Math.Min(ChunkedBuildChunkSize, _chunkedBuildTotalBlocks - _chunkedBuildNextModelIndex);
+        Dispatcher.UIThread.Post(() => BuildNextChunk(generation, next), DispatcherPriority.Background);
     }
 
     private bool TryRenderIncremental(string text, MarkdownDocumentModel? parsedModel, MarkdownTextSpan? dirtySpan)
