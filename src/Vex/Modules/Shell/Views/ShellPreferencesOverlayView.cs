@@ -23,6 +23,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
     private readonly ShellPreferencesViewModel _model;
     private readonly IAppLocalizer _localizer;
     private readonly ListBox _navigation = new() { Classes = { "preferences-navigation" }, Padding = new Thickness(10, 18), Background = Brushes.Transparent, BorderThickness = new Thickness(0) };
+    // 左栏底部固定入口：打开应用数据目录（%LOCALAPPDATA%/Vex：日志、草稿、模板、审计与配置）。
+    private readonly Button _openDataFolder;
+    private readonly TextBlock _openDataFolderLabel;
     // 原型两栏背景：左栏 --panel、右栏 --bg，浅深主题下有明暗差。浏览器侧是覆盖式滚动条，
     // 截图不占位；原生用 Hidden 保持同宽内容列（滚轮/触摸板仍可滚动）。
     private readonly ScrollViewer _scroll = new() { Name = "PreferencesContent", Padding = new Thickness(20), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Hidden };
@@ -54,7 +57,14 @@ public sealed class ShellPreferencesOverlayView : UserControl
         grid.Children.Add(headerFrame);
         var body = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*") };
         // 原型契约：标题栏与左栏同用 --panel（铬色），右栏配置区用更浅的 --bg。
-        var navigationFrame = Frame(_navigation, new Thickness(0, 0, 1, 0));
+        // 左栏分上下两行：分类导航 + 底部固定「打开应用数据目录」入口。
+        var navigationPane = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
+        navigationPane.Children.Add(_navigation);
+        _openDataFolder = BuildOpenDataFolderButton();
+        _openDataFolderLabel = (TextBlock)((Grid)_openDataFolder.Content!).Children.OfType<TextBlock>().Single();
+        navigationPane.Children.Add(_openDataFolder);
+        Grid.SetRow(_openDataFolder, 1);
+        var navigationFrame = Frame(navigationPane, new Thickness(0, 0, 1, 0));
         BindResource(navigationFrame, Border.BackgroundProperty, "VexDialogChromeBrush");
         BindResource(_scroll, BackgroundProperty, "VexPopBrush");
         body.Children.Add(navigationFrame); Grid.SetColumn(_scroll, 1); body.Children.Add(_scroll);
@@ -108,6 +118,8 @@ public sealed class ShellPreferencesOverlayView : UserControl
     {
         var selected = Math.Max(0, _navigation.SelectedIndex);
         _title.Text = L(VexL.PreferencesTitle);
+        _openDataFolderLabel.Text = L(VexL.PrefOpenDataFolder);
+        Avalonia.Automation.AutomationProperties.SetName(_openDataFolder, L(VexL.PrefOpenDataFolder));
         // 字形与 _categories 逐项对应：文件、编辑、图片、调色板、导出（向上箭头，同原型 i-export）、Git 分支、终端。
         string[] icons = ["M7 2H15L20 7V22H4V2Z M14 2V8H20", "M12 4H4V20H20V12 M18 2L22 6L12 16L8 17L9 13Z", "M3 5H21V19H3Z M8 11A1.5 1.5 0 1 0 8 11.01 M5 17L10 12L13 15L16 12L19 15", "M12 3a9 9 0 0 0 0 18h1.5a2 2 0 0 0 0-4H12a2 2 0 0 1 0-4h3.5a5.5 5.5 0 0 0 0-11H12Z M7.5 9h.1 M11 6.5h.1 M16 7.5h.1", "M21 15V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V15 M17 8L12 3L7 8 M12 3V15", "M6 3V15 M18 9A3 3 0 1 0 18 3A3 3 0 0 0 18 9 M6 21A3 3 0 1 0 6 15A3 3 0 0 0 6 21 M18 9A9 9 0 0 1 9 18", "M5 7L10 12L5 17 M13 17H20"];
         _navigation.ItemsSource = _categories.Select((c, i) =>
@@ -129,6 +141,69 @@ public sealed class ShellPreferencesOverlayView : UserControl
         }).ToArray();
         _navigation.SelectedIndex = selected;
     }
+    /// <summary>左栏底部「打开应用数据目录」：13px 文件夹图标 + 文案，样式对齐分类导航条目。</summary>
+    private Button BuildOpenDataFolderButton()
+    {
+        var row = new Grid { ColumnDefinitions = new ColumnDefinitions("17,*"), ColumnSpacing = 10 };
+        var icon = new Avalonia.Controls.Shapes.Path
+        {
+            Data = global::Avalonia.Media.Geometry.Parse("M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"),
+            StrokeThickness = 1.8,
+            StrokeLineCap = PenLineCap.Round,
+            StrokeJoin = PenLineJoin.Round,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        BindResource(icon, Avalonia.Controls.Shapes.Shape.StrokeProperty, "VexMutedBrush");
+        var iconCanvas = new Canvas { Width = 24, Height = 24 };
+        iconCanvas.Children.Add(icon);
+        row.Children.Add(new Viewbox { Width = 17, Height = 17, Child = iconCanvas, VerticalAlignment = VerticalAlignment.Center });
+        var label = new TextBlock { Classes = { "pref-navigation-label" }, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+        BindResource(label, TextBlock.FontSizeProperty, "VexUiMenuFontSize");
+        BindResource(label, TextBlock.LineHeightProperty, "VexUiBodyLineHeight");
+        Grid.SetColumn(label, 1);
+        row.Children.Add(label);
+        var button = new Button
+        {
+            Content = row,
+            Classes = { "preferences-data-folder" },
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(10, 10, 10, 14),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            MinWidth = 0,
+            MinHeight = 0,
+            CornerRadius = new CornerRadius(4),
+        };
+        BindResource(button, ForegroundProperty, "VexMutedBrush");
+        // 悬浮反馈：前景与导航项 hover 同源（VexValueBrush），离开还原 Muted。
+        button.PointerEntered += (_, _) => BindResource(button, ForegroundProperty, "VexValueBrush");
+        button.PointerExited += (_, _) => BindResource(button, ForegroundProperty, "VexMutedBrush");
+        button.Click += (_, _) => OpenAppDataFolder();
+        return button;
+    }
+
+    /// <summary>打开应用数据目录（%LOCALAPPDATA%/Vex：日志、草稿、模板、审计与配置）。</summary>
+    private void OpenAppDataFolder()
+    {
+        try
+        {
+            var folder = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex");
+            Directory.CreateDirectory(folder);
+            using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = folder,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception error)
+        {
+            CodeWF.Toolkit.Logging.Logger.Debug("打开应用数据目录失败: " + error.Message);
+        }
+    }
+
     private void ShowCategory()
     {
         var page = new StackPanel { Spacing = 0 };

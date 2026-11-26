@@ -971,6 +971,7 @@
       "PrefIndent": "縮排",
       "PrefWrap": "程式碼自動換行",
       "PrefReadingVirtualization": "閱讀長文件虛擬化",
+      "PrefOpenDataFolder": "開啟應用程式資料夾",
       "PrefMath": "數學公式",
       "PrefChemistry": "化學表達式",
       "PrefDiagrams": "Mermaid 圖表",

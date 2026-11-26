@@ -971,6 +971,7 @@
       "PrefIndent": "インデント",
       "PrefWrap": "コードの折り返し",
       "PrefReadingVirtualization": "閲覧ビューの長文仮想化",
+      "PrefOpenDataFolder": "アプリデータフォルダーを開く",
       "PrefMath": "数式",
       "PrefChemistry": "化学式",
       "PrefDiagrams": "Mermaid 図",

@@ -1,10 +1,19 @@
-using CodeWF.Toolkit.Files.Helpers;
+using System.Globalization;
+using System.Text.Json;
 using Vex.Core.Models;
 
 namespace Vex.Core.Services;
 
 public sealed class AppSettingsStore : IAppSettingsStore
 {
+    // 配置位置：用户数据目录（%LOCALAPPDATA%/Vex/settings.json）。不再写入应用目录旁的
+    // Vex.dll.config（exe-config 约定会随输出目录分裂、装进系统目录还有写权限问题）。
+    // 测试经 ConfigFilePathOverride 重定向到临时目录；不做旧文件迁移。
+    internal static string ConfigFilePathOverride { get; set; } = string.Empty;
+
+    internal static string ConfigFilePath =>
+        ConfigFilePathOverride.Length > 0 ? ConfigFilePathOverride : Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vex", "settings.json");
 
     private const string ThemeKey = nameof(AppSettings.ThemeKey);
     private const string PaletteKey = nameof(AppSettings.PaletteKey);
@@ -164,7 +173,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 
     private static AppSettings Load()
     {
-        var configuration = AppConfigHelper.ReadAll();
+        var configuration = ReadConfiguration();
         return new AppSettings
         {
             IsOutlineVisible = Get<bool?>(configuration, IsOutlineVisible),
@@ -273,7 +282,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
     {
         try
         {
-            AppConfigHelper.SetMany(new Dictionary<string, object?>
+            Persist(new Dictionary<string, object?>
             {
                 [IsOutlineVisible] = settings.IsOutlineVisible,
                 [OutlineWidth] = settings.OutlineWidth,
@@ -376,10 +385,43 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [IsTypewriterMode] = settings.IsTypewriterMode
             });
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Xml.XmlException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
         {
             // 用户设置保存失败不应打断当前编辑流程，后续可接入统一错误提示。
         }
+    }
+
+    /// <summary>读用户目录的 settings.json（UTF-8，平铺键值）。文件缺失或损坏一律回落空表（全默认值）。</summary>
+    private static IReadOnlyDictionary<string, string> ReadConfiguration()
+    {
+        try
+        {
+            var path = ConfigFilePath;
+            if (!File.Exists(path)) return new Dictionary<string, string>();
+            return JsonSerializer.Deserialize(File.ReadAllText(path), AppSettingsJsonContext.Default.DictionaryStringString)
+                ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return new Dictionary<string, string>();
+        }
+    }
+
+    /// <summary>原子写 settings.json（临时文件 + 替换），值以固定文化序列化（小数点不随区域）。</summary>
+    private static void Persist(Dictionary<string, object?> values)
+    {
+        var path = ConfigFilePath;
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var payload = new Dictionary<string, string>(values.Count, StringComparer.Ordinal);
+        foreach (var (key, value) in values)
+        {
+            if (value is null) continue;
+            payload[key] = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+        }
+
+        var temporary = path + ".tmp";
+        File.WriteAllText(temporary, JsonSerializer.Serialize(payload, AppSettingsJsonContext.Default.DictionaryStringString));
+        File.Move(temporary, path, overwrite: true);
     }
 
     private static string Choice(IReadOnlyDictionary<string, string> configuration, string key, string fallback, params string[] values)
@@ -396,9 +438,20 @@ public sealed class AppSettingsStore : IAppSettingsStore
     }
     private static T? Get<T>(IReadOnlyDictionary<string, string> configuration, string key)
     {
-        return configuration.TryGet<T>(key, out var value)
-            ? value
-            : default;
+        if (!configuration.TryGetValue(key, out var raw) || raw.Length == 0) return default;
+        try
+        {
+            if (typeof(T) == typeof(bool?)) return (T?)(object?)(bool.TryParse(raw, out var flag) ? flag : null);
+            if (typeof(T) == typeof(int?)) return (T?)(object?)(int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? number : null);
+            if (typeof(T) == typeof(double?)) return (T?)(object?)(double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var real) ? real : null);
+            if (typeof(T) == typeof(string)) return (T?)(object)raw;
+        }
+        catch (FormatException)
+        {
+            return default;
+        }
+
+        return default;
     }
 
     /// <summary>MCP 访问令牌静态加密：Windows DPAPI（CurrentUser）/其他平台 Base64 兜底（文件权限即边界，
