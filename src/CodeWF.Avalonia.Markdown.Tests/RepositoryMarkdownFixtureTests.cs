@@ -35,7 +35,8 @@ public sealed class RepositoryMarkdownFixtureTests(AvaloniaPlatformFixture platf
         Assert.Contains(blocks, block => block is ThematicBreakBlock);
         Assert.Contains(blocks, block => block is CodeBlock and not FencedCodeBlock and not YamlFrontMatterBlock);
         Assert.Contains(blocks, block => block is Footnote);
-        Assert.Contains("术语\n: 定义列表", source, StringComparison.Ordinal);
+        // 跨行断言与换行符无关：Windows autocrlf 检出会把 LF 转成 CRLF。
+        Assert.Contains("术语\n: 定义列表", source.Replace("\r\n", "\n"), StringComparison.Ordinal);
         Assert.Contains(":::note", source, StringComparison.Ordinal);
         Assert.Contains(blocks, block => block is HtmlBlock);
         Assert.True(document.Descendants<HtmlInline>().Any());

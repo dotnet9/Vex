@@ -17,12 +17,18 @@ namespace CodeWF.Avalonia.Markdown.Tests;
 [Collection("AvaloniaPlatform")]
 public sealed class LiveEditorSwitchProfileTests(AvaloniaPlatformFixture platform)
 {
-	private const string DocsDir = @"E:\github\Apps\Vex\docs";
+	private static readonly string DocsDir = ResolveRepositoryPath("docs");
 
 	private static string? LoadDoc(string fileName) =>
 		System.IO.Path.Combine(DocsDir, fileName) is { } path && System.IO.File.Exists(path)
 			? System.IO.File.ReadAllText(path)
 			: null;
+
+	/// <summary>仓库内路径随测试源码定位解析，不绑定具体盘符/检出位置。</summary>
+	private static string ResolveRepositoryPath(string relativePath,
+		[System.Runtime.CompilerServices.CallerFilePath] string testFile = "") =>
+		System.IO.Path.GetFullPath(System.IO.Path.Combine(
+			System.IO.Path.GetDirectoryName(testFile)!, "..", "..", relativePath));
 
 	[Fact]
 	public void SetText_Profile_OnRealDocs() => platform.Run(() =>
@@ -69,7 +75,11 @@ public sealed class LiveEditorSwitchProfileTests(AvaloniaPlatformFixture platfor
 				report.AppendLine($"[{name}] 行={text!.Split('\n').Length} SetText={setTextMs}ms 布局收敛={layoutClock.ElapsedMilliseconds}ms");
 			}
 
-			System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\liveeditor-profile-report.txt", report.ToString());
+			// 基准报告写入仓库 artifacts（已 gitignore），路径随测试源码定位解析。
+			var reportPath = System.IO.Path.Combine(ResolveRepositoryPath(
+				System.IO.Path.Combine("artifacts", "liveeditor-profile-report.txt")));
+			System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(reportPath)!);
+			System.IO.File.WriteAllText(reportPath, report.ToString());
 		}
 		finally
 		{

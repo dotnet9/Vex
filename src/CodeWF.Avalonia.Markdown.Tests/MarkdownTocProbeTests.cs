@@ -47,7 +47,11 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 				dump.AppendLine($"InlineUIContainer child={container.Child?.GetType().Name ?? "null"}");
 			}
 
-			System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\toc-probe-report.txt", dump.ToString());
+			// 探针报告写入仓库 artifacts（已 gitignore），路径随测试源码定位解析。
+			var reportPath = System.IO.Path.Combine(ResolveRepositoryPath(
+				System.IO.Path.Combine("artifacts", "toc-probe-report.txt")));
+			System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(reportPath)!);
+			System.IO.File.WriteAllText(reportPath, dump.ToString());
 		}
 		finally
 		{
@@ -55,4 +59,10 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 			Dispatcher.UIThread.RunJobs();
 		}
 	});
+
+	/// <summary>仓库内路径随测试源码定位解析，不绑定具体盘符/检出位置。</summary>
+	private static string ResolveRepositoryPath(string relativePath,
+		[System.Runtime.CompilerServices.CallerFilePath] string testFile = "") =>
+		System.IO.Path.GetFullPath(System.IO.Path.Combine(
+			System.IO.Path.GetDirectoryName(testFile)!, "..", "..", relativePath));
 }

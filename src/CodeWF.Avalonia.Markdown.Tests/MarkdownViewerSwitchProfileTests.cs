@@ -18,7 +18,7 @@ namespace CodeWF.Avalonia.Markdown.Tests;
 [Collection("AvaloniaPlatform")]
 public sealed class MarkdownViewerSwitchProfileTests(AvaloniaPlatformFixture platform)
 {
-	private const string DocsDir = @"E:\github\Apps\Vex\docs";
+	private static readonly string DocsDir = ResolveRepositoryPath("docs");
 	private const int SyncBlocks = 40;
 	private const int ChunkSize = 24;
 
@@ -29,6 +29,12 @@ public sealed class MarkdownViewerSwitchProfileTests(AvaloniaPlatformFixture pla
 		System.IO.Path.Combine(DocsDir, fileName) is { } path && System.IO.File.Exists(path)
 			? System.IO.File.ReadAllText(path)
 			: null;
+
+	/// <summary>仓库内路径随测试源码定位解析，不绑定具体盘符/检出位置。</summary>
+	private static string ResolveRepositoryPath(string relativePath,
+		[System.Runtime.CompilerServices.CallerFilePath] string testFile = "") =>
+		System.IO.Path.GetFullPath(System.IO.Path.Combine(
+			System.IO.Path.GetDirectoryName(testFile)!, "..", "..", relativePath));
 
 	private static int BuiltCount(MarkdownViewer viewer) =>
 		((System.Collections.IList)typeof(MarkdownViewer).GetField("_renderedBlocks",
@@ -139,6 +145,10 @@ public sealed class MarkdownViewerSwitchProfileTests(AvaloniaPlatformFixture pla
 			Dispatcher.UIThread.RunJobs();
 		}
 
-		System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\switch-profile-report.txt", Report.ToString());
+		// 基准报告写入仓库 artifacts（已 gitignore），路径随测试源码定位解析。
+		var reportPath = System.IO.Path.Combine(ResolveRepositoryPath(
+			System.IO.Path.Combine("artifacts", "switch-profile-report.txt")));
+		System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(reportPath)!);
+		System.IO.File.WriteAllText(reportPath, Report.ToString());
 	});
 }
