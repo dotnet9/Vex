@@ -545,10 +545,12 @@ public partial class MarkdownLiveEditorView : UserControl
         {
             // 巨文档：解析转后台线程（真机实测 UI 线程 165ms），完成后回 UI 线程应用；
             // 世代守卫丢弃过期结果（连续切换不堆积）。小文档走同步路径不变。
+            // 抑制必须延续到 ApplyParsedDocument：异步窗口内编辑器 Text 还是旧内容（启动时为空），
+            // 此时任何光标/选区事件经宿主回推会把旧文本写进文档模型——即时布局下打开巨文档
+            // 曾因此把文档清空并标成已修改（有保存即清空文件的风险）。
             var generation = ++_asyncParseGeneration;
             var pending = markdown;
             var pendingBasePath = imageBasePath;
-            _suppressChanged = false;
             System.Threading.Tasks.Task.Run(() =>
             {
                 var models = MarkdownBlockParser.Parse(pending);
