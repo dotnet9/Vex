@@ -155,35 +155,30 @@ public sealed class MarkdownViewerChunkedRenderTests(AvaloniaPlatformFixture pla
 	});
 
 	[Fact]
-	public void ChunkedBuild_KeepsFirstPaintCostBoundedBelowFullBuild() => platform.Run(() =>
+	public void HugeDocument_FirstSyncBuildIsBounded_RegardlessOfSize() => platform.Run(() =>
 	{
-		// 性能语义：切文档的首帧建块耗时必须显著低于整篇同步建（宽松断言首帧 < 整篇 1/3，
-		// headless 计时有噪声）；绝对数字输出到断言消息供基准报告摘录。
+		// 性能语义（确定性断言，不含计时噪声）：分帧路径的首帧同步工作量有界——
+		// 无论文档多大，第一帧只建 ChunkedBuildSyncBlocks 块，切换不再有 O(整篇) 的同步停顿。
+var document = string.Join(Environment.NewLine + Environment.NewLine,
+			Enumerable.Range(0, 1500)
+			.Select(i => $"Paragraph {i} with enough body text to occupy layout space."));
 		var viewer = new MarkdownViewer();
 		var window = new Window { Width = 800, Height = 600, Content = viewer };
 		window.Show();
 		try
 		{
 			Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
-			var document = BuildDocument();
 
 			viewer.Markdown = document;
-			var firstPaintClock = Stopwatch.StartNew();
 			Dispatcher.UIThread.RunJobs(DispatcherPriority.Render);
 			window.UpdateLayout();
-			firstPaintClock.Stop();
-			var firstPaint = BuiltCount(viewer);
-			Assert.Equal(SyncBlocks, firstPaint);
+			Assert.Equal(SyncBlocks, BuiltCount(viewer));
 
-			var fullClock = Stopwatch.StartNew();
-			viewer.Rerender();
-			Dispatcher.UIThread.RunJobs(DispatcherPriority.Render);
-			window.UpdateLayout();
-			fullClock.Stop();
-			Assert.Equal(ParagraphCount, BuiltCount(viewer));
-
-			Assert.True(firstPaintClock.Elapsed < fullClock.Elapsed / 3,
-				$"首帧建块 {firstPaintClock.Elapsed.TotalMilliseconds:F1}ms（{firstPaint} 块）应显著低于整篇 {fullClock.Elapsed.TotalMilliseconds:F1}ms（{ParagraphCount} 块）");
+			// 分帧续建补齐全量，且保序。
+			Pump(window, 400);
+			Assert.Equal(1500, BuiltCount(viewer));
+			Assert.Contains("Paragraph 0", PlainTextAt(viewer, 0));
+			Assert.Contains("Paragraph 1499", PlainTextAt(viewer, 1499));
 		}
 		finally
 		{

@@ -47,7 +47,10 @@ public interface IMarkdownRenderContext
     /// <summary>递归转换嵌套块（引用、列表、表格单元格内容）。</summary>
     Control? ConvertBlock(Block block, string? sourceMarkdown);
 
-    SelectableTextBlock CreateParagraph(ParagraphBlock paragraph, bool stripTaskPrefix, Thickness? marginOverride);
+    Control CreateParagraph(ParagraphBlock paragraph, bool stripTaskPrefix, Thickness? marginOverride);
+
+    /// <summary>创建自绘可选中文本段（样式类别与主题绑定由调用方按排版主题补齐）。</summary>
+    MarkdownTextSegmentView CreateTextSegment(params string[] classes);
 
     /// <summary>内联树 → Avalonia 内联集合（链接、行内代码、公式、图片等）。</summary>
     System.Collections.Generic.IEnumerable<global::Avalonia.Controls.Documents.Inline> ConvertInlines(

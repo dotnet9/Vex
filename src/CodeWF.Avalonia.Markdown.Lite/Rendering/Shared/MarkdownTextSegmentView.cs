@@ -16,7 +16,7 @@ namespace CodeWF.Avalonia.Markdown.Rendering;
 /// 支持：行内样式（粗/斜/删除线/==高亮==/行内代码/链接）、跨块选区接管
 /// （<see cref="IMarkdownTextSelectionVisual"/>）、链接命中与点击打开。
 /// </summary>
-public sealed class MarkdownTextSegmentView : Control, IMarkdownTextSelectionVisual
+public sealed class MarkdownTextSegmentView : Control, IMarkdownTextSelectionVisual, IMarkdownSearchHighlightVisual
 {
 	public static readonly StyledProperty<MarkdownSegmentContent?> ContentProperty =
 		AvaloniaProperty.Register<MarkdownTextSegmentView, MarkdownSegmentContent?>(nameof(Content));
@@ -72,6 +72,7 @@ public sealed class MarkdownTextSegmentView : Control, IMarkdownTextSelectionVis
 	private int _selectionFrom = -1;
 	private int _selectionTo = -1;
 	private bool _contentDirty;
+	private readonly List<(int Start, int Length, IBrush Brush)> _searchHighlights = [];
 
 	public MarkdownSegmentContent? Content
 	{
@@ -320,6 +321,14 @@ public sealed class MarkdownTextSegmentView : Control, IMarkdownTextSelectionVis
 			return;
 		}
 
+		foreach (var (start, length, brush) in _searchHighlights)
+		{
+			foreach (var rect in _layout.HitTestTextRange(start, length))
+			{
+				context.DrawRectangle(brush, null, rect);
+			}
+		}
+
 		if (_selectionFrom >= 0 && _selectionTo > _selectionFrom)
 		{
 			var brush = ResolveSelectionBrush();
@@ -374,6 +383,13 @@ public sealed class MarkdownTextSegmentView : Control, IMarkdownTextSelectionVis
 	{
 		_selectionFrom = -1;
 		_selectionTo = -1;
+		InvalidateVisual();
+	}
+
+	void IMarkdownSearchHighlightVisual.ApplySearchHighlights(IReadOnlyList<(int Start, int Length, IBrush Brush)> highlights)
+	{
+		_searchHighlights.Clear();
+		_searchHighlights.AddRange(highlights);
 		InvalidateVisual();
 	}
 

@@ -1,7 +1,10 @@
 using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Rendering;
+using CodeWF.Avalonia.Markdown.Shared.Rendering;
 
 using global::Avalonia;
 using global::Avalonia.Controls;
+using global::Avalonia.Controls.Documents;
 using global::Avalonia.Input;
 using global::Avalonia.Input.Platform;
 using global::Avalonia.Interactivity;
@@ -19,12 +22,14 @@ namespace CodeWF.Avalonia.Markdown.Tests;
 /// bubble 之后落，避免被原生点击焦点清除）；复制级联：跨块选择 → 块内原生选择 →
 /// 整篇渲染文本。本测试手动构造 KeyDown 路由事件（headless 键盘管线不派发原始输入），
 /// 直接驱动 tunnel 处理器验证级联顺序与剪贴板结果。
+/// 文档里的「带 &lt;b&gt;…&lt;/b&gt;」段落走回退路径（内联 HTML 不被段桥支持），
+/// 专门保住「块内原生选择」级联的覆盖面。
 /// </summary>
 [Collection("AvaloniaPlatform")]
 public sealed class MarkdownViewerCopyTests(AvaloniaPlatformFixture platform)
 {
     private const string Document =
-        "# 标题\n\n第一段正文内容，用于块内选择测试。\n\n第二段正文内容，用于跨块选择测试。\n\n第三段正文内容。";
+        "# 标题\n\n第一段正文内容，用于块内选择测试。\n\n带 <b>内联 HTML</b> 的段落保留可选文本块路径。\n\n第二段正文内容，用于跨块选择测试。\n\n第三段正文内容。";
 
     private static readonly System.Reflection.BindingFlags InstancePrivate =
         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
@@ -51,7 +56,7 @@ public sealed class MarkdownViewerCopyTests(AvaloniaPlatformFixture platform)
         stb.SelectionEnd = end;
     }
 
-    private static void SelectAcrossBlocks(MarkdownViewer viewer, SelectableTextBlock from)
+    private static void SelectAcrossBlocks(MarkdownViewer viewer, Control from)
     {
         // 走真实选择控制器：Begin 在 from 位置，Extend 到文档中部（internal 类，测试工程可见）。
         var controller = (CodeWF.Avalonia.Markdown.Shared.Rendering.MarkdownSelectionController)
@@ -77,14 +82,13 @@ public sealed class MarkdownViewerCopyTests(AvaloniaPlatformFixture platform)
                 Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
 
                 viewer.Focus();
-                var first = viewer.GetVisualDescendants().OfType<SelectableTextBlock>()
-                    .First(tb => (tb.Inlines?.Text ?? string.Empty).Contains("第一段"));
-                SelectAcrossBlocks(viewer, first);
+                var from = (Control)FindTextControl(viewer, "第一段")!;
+                SelectAcrossBlocks(viewer, from);
                 Assert.True(viewer.HasSelection, "控制器拖选应产生跨块选区");
                 var selected = viewer.SelectedText;
                 Assert.False(string.IsNullOrEmpty(selected));
 
-                RaiseCtrlC(first);
+                RaiseCtrlC(from);
                 Dispatcher.UIThread.RunJobs();
 
                 Assert.Equal(selected, ClipboardText(viewer));
@@ -109,9 +113,9 @@ public sealed class MarkdownViewerCopyTests(AvaloniaPlatformFixture platform)
                 Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
 
                 viewer.Focus();
-                var target = viewer.GetVisualDescendants().OfType<SelectableTextBlock>()
-                    .First(tb => (tb.Inlines?.Text ?? string.Empty).Contains("第一段"));
-                SelectNative(target, 0, 6);
+                // 回退路径段落（内联 HTML）保留了 SelectableTextBlock：块内原生选择在此验证。
+                var target = (SelectableTextBlock)FindTextControl(viewer, "<b>")!;
+                SelectNative(target, 4, 10);
                 var native = target.SelectedText;
                 Assert.False(string.IsNullOrEmpty(native), "原生选区应已设置");
                 Assert.False(viewer.HasSelection, "块内原生选择不属于跨块控制器");
@@ -143,7 +147,7 @@ public sealed class MarkdownViewerCopyTests(AvaloniaPlatformFixture platform)
                 viewer.Focus();
                 // 剪贴板是 headless 全局 stub：清掉上一条测试的残留，隔离断言。
                 TopLevel.GetTopLevel(viewer)!.Clipboard!.ClearAsync().GetAwaiter().GetResult();
-                var anyBlock = viewer.GetVisualDescendants().OfType<SelectableTextBlock>().First();
+                var anyBlock = FindTextControl(viewer, "第一段")!;
                 RaiseCtrlC(anyBlock);
                 Dispatcher.UIThread.RunJobs();
 
@@ -156,6 +160,14 @@ public sealed class MarkdownViewerCopyTests(AvaloniaPlatformFixture platform)
             }
         });
     }
+
+    private static Control? FindTextControl(MarkdownViewer viewer, string marker) =>
+        (Control?)viewer.GetVisualDescendants().OfType<SelectableTextBlock>()
+            .FirstOrDefault(tb => tb.Text?.Contains(marker) == true
+                || tb.Inlines?.OfType<Span>().Any(sp => sp.Inlines.OfType<Run>().Any(r => (r.Text ?? "").Contains(marker))) == true
+                || tb.Inlines?.OfType<Run>().Any(r => (r.Text ?? "").Contains(marker)) == true)
+        ?? viewer.GetVisualDescendants().OfType<MarkdownTextSegmentView>()
+            .FirstOrDefault(segment => segment.PlainText.Contains(marker));
 
     private static MarkdownViewer CreateViewer(out Window window)
     {

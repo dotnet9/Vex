@@ -2042,8 +2042,16 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     Control? Rendering.IMarkdownRenderContext.ConvertBlock(Block block, string? sourceMarkdown) =>
         ConvertBlock(block, sourceMarkdown);
 
-    SelectableTextBlock Rendering.IMarkdownRenderContext.CreateParagraph(ParagraphBlock paragraph, bool stripTaskPrefix, Thickness? marginOverride) =>
+    Control Rendering.IMarkdownRenderContext.CreateParagraph(ParagraphBlock paragraph, bool stripTaskPrefix, Thickness? marginOverride) =>
         ParagraphRenderer.CreateParagraph(paragraph, stripTaskPrefix, marginOverride, this);
+
+    Rendering.MarkdownTextSegmentView Rendering.IMarkdownRenderContext.CreateTextSegment(params string[] classes)
+    {
+        var segment = new Rendering.MarkdownTextSegmentView();
+        AddMarkdownClass(segment, classes);
+        TextOptions.SetBaselinePixelAlignment(segment, BaselinePixelAlignment.Aligned);
+        return segment;
+    }
 
     private System.Collections.Generic.IEnumerable<global::Avalonia.Controls.Documents.Inline> ConvertInlines(
         Markdig.Syntax.Inlines.ContainerInline? container,

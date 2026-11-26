@@ -1,5 +1,6 @@
 using CodeWF.Avalonia.Markdown.Tests;
 using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Rendering;
 using global::Avalonia;
 using global::Avalonia.Controls;
 using global::Avalonia.Controls.Documents;
@@ -205,8 +206,15 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
                 Assert.True(panel.GetRealizedItem(index)!.DesiredSize.Height > 0);
             }
 
-            var paragraph = Assert.IsAssignableFrom<SelectableTextBlock>(panel.GetRealizedItem(370));
-            Assert.Equal("Paragraph 370 is ordinary supported Markdown content.", paragraph.Inlines?.OfType<Run>().Single().Text);
+            var paragraph = panel.GetRealizedItem(370) switch
+            {
+                MarkdownTextSegmentView segment => (Control)segment,
+                SelectableTextBlock textBlock => textBlock,
+                _ => throw new Xunit.Sdk.XunitException($"块 370 应为段控件或可选文本块，实际 {panel.GetRealizedItem(370)?.GetType().Name}")
+            };
+            Assert.Equal("Paragraph 370 is ordinary supported Markdown content.",
+                paragraph is MarkdownTextSegmentView seg ? seg.PlainText
+                    : ((SelectableTextBlock)paragraph).Inlines?.OfType<Run>().Single().Text);
             Assert.True(panel.TryGetItemTop(370, out var paragraphTop));
             scroll.Offset = new Vector(0, paragraphTop);
             Dispatcher.UIThread.RunJobs();
@@ -278,8 +286,18 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
 
             Assert.False(panel.IsVirtualizing);
             Assert.Equal(panel.ItemCount, panel.RealizedItemCount);
-            var last = Assert.IsAssignableFrom<SelectableTextBlock>(panel.GetRealizedItem(119));
-            Assert.Equal("Paragraph 119", last.Inlines?.OfType<Run>().Single().Text);
+            switch (panel.GetRealizedItem(119))
+            {
+                case MarkdownTextSegmentView segment:
+                    Assert.Equal("Paragraph 119", segment.PlainText);
+                    break;
+                case SelectableTextBlock textBlock:
+                    Assert.Equal("Paragraph 119", textBlock.Inlines?.OfType<Run>().Single().Text);
+                    break;
+                default:
+                    Assert.Fail($"块 119 应为段控件或可选文本块，实际 {panel.GetRealizedItem(119)?.GetType().Name}");
+                    break;
+            }
         }
         finally
         {

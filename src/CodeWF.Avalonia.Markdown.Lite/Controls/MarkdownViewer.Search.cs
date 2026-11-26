@@ -94,6 +94,16 @@ public partial class MarkdownViewer
             if (!IsBlockRealized(i)) continue;
             var root = _renderedBlocks[i].Control;
             var plainText = _renderedModel.Blocks[i].PlainText;
+
+            // 自绘文本段：高亮区间整表下发（段纯文本与查找偏移同源，段内自行夹取），不走 Run 拆分投影。
+            IMarkdownSearchHighlightVisual? searchVisual = root as IMarkdownSearchHighlightVisual;
+            searchVisual ??= root.GetVisualDescendants().OfType<IMarkdownSearchHighlightVisual>().FirstOrDefault();
+            if (searchVisual is not null)
+            {
+                ApplySegmentSearch(searchVisual, i);
+                continue;
+            }
+
             var projections = MarkdownTextProjections.Create(root, plainText).ToArray();
             foreach (var text in projections.Where(item => item.TextBlock is not null).Select(item => item.TextBlock!).Distinct())
             {
@@ -132,6 +142,17 @@ public partial class MarkdownViewer
     }
     private static bool Overlaps(SearchMatch match, int start, int length) =>
         match.Offset < start + length && match.Offset + match.Length > start;
+    private void ApplySegmentSearch(IMarkdownSearchHighlightVisual visual, int blockIndex)
+    {
+        var entries = new List<(int Start, int Length, IBrush Brush)>();
+        for (var m = 0; m < _searchMatches.Count; m++)
+        {
+            var match = _searchMatches[m];
+            if (match.BlockIndex != blockIndex) continue;
+            entries.Add((match.Offset, match.Length, m == _searchCurrentIndex ? SearchCurrentBrush! : SearchHighlightBrush!));
+        }
+        visual.ApplySearchHighlights(entries);
+    }
     private void PaintRun(SelectableTextBlock owner, Run source, int runStart, SearchMatch[] matches)
     {
         if (source.Text is not { Length: > 0 } text) return;
@@ -209,6 +230,15 @@ public partial class MarkdownViewer
             text.Inlines = null; text.Text = plain; _searchPlainBlocks.Remove(text);
         }
         RestoreFormulaSearch(owner);
+        if (owner is null)
+        {
+            // 自绘文本段的高亮区间整表替换式下发：全局清除时同步清空。
+            foreach (var block in _renderedBlocks)
+            {
+                if (block.Control is IMarkdownSearchHighlightVisual selfHighlight) selfHighlight.ApplySearchHighlights([]);
+                else if (block.Control.GetVisualDescendants().OfType<IMarkdownSearchHighlightVisual>().FirstOrDefault() is { } childHighlight) childHighlight.ApplySearchHighlights([]);
+            }
+        }
         if (owner is null) _searchPainted.Clear(); else _searchPainted.Remove(owner);
     }
     private void RestoreFormulaSearch(Control? owner = null)
