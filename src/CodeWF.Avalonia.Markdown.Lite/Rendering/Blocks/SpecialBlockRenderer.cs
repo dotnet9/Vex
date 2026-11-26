@@ -133,6 +133,7 @@ internal sealed class SpecialBlockRenderer : IMarkdownBlockRenderer
 
     private static Control CreateToc(IMarkdownRenderContext context)
     {
+        // 真层级（按级别缩进边距，不再用空格占位）+ 可点击跳转（点击 → 宿主滚动定位标题行）。
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 4 };
         context.AddMarkdownClass(panel, MarkdownStyleKeys.List);
 
@@ -140,11 +141,25 @@ internal sealed class SpecialBlockRenderer : IMarkdownBlockRenderer
         foreach (var heading in document.OfType<HeadingBlock>().Where(h => h.Level is >= 1 and <= 3))
         {
             var item = context.CreateSelectableText(MarkdownStyleKeys.ListMarker);
-            item.Text = $"{new string(' ', Math.Max(0, heading.Level - 1) * 2)}{MarkdownPlainTextExtractor.ExtractPlainText(heading.Inline)}";
+            item.Text = MarkdownPlainTextExtractor.ExtractPlainText(heading.Inline);
             item.TextWrapping = TextWrapping.Wrap;
-            context.BindTheme(item, SelectableTextBlock.ForegroundProperty, heading.Level <= 2 ? MarkdownViewer.AccentBrushProperty : MarkdownViewer.TextBrushProperty);
+            item.Cursor = new global::Avalonia.Input.Cursor(global::Avalonia.Input.StandardCursorType.Hand);
+            item.Margin = new Thickness((heading.Level - 1) * 16, 0, 0, 0);
+            // Typora 式 TOC 条目：正文前景色，悬浮显示下划线示意可点击。
+            context.BindTheme(item, SelectableTextBlock.ForegroundProperty, MarkdownViewer.TextBrushProperty);
             context.BindTheme(item, SelectableTextBlock.FontFamilyProperty, MarkdownViewer.ContentFontFamilyProperty);
             context.BindTheme(item, SelectableTextBlock.FontSizeProperty, MarkdownViewer.ParagraphFontSizeProperty);
+            item.PointerEntered += (_, _) => item.TextDecorations = TextDecorations.Underline;
+            item.PointerExited += (_, _) => item.TextDecorations = null;
+            var line = heading.Line;
+            item.PointerReleased += (_, e) =>
+            {
+                if (e.InitialPressMouseButton == global::Avalonia.Input.MouseButton.Left)
+                {
+                    context.RaiseTocEntryClicked(line);
+                    e.Handled = true;
+                }
+            };
             panel.Children.Add(item);
         }
 

@@ -69,6 +69,9 @@ public interface IMarkdownRenderContext
     /// </summary>
     void RaiseLinkClicked(MarkdownLinkClickEventArgs args);
 
+    /// <summary>TOC 条目被点击（参数为标题所在源码行，1 起始）；宿主负责滚动定位。</summary>
+    void RaiseTocEntryClicked(int line);
+
     /// <summary>
     /// 代码块折叠状态（按块键 = 源码起始偏移存储，跨重渲染/虚拟化回收保留）。
     /// </summary>
