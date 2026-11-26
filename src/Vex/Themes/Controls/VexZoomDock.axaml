@@ -1,7 +1,8 @@
 ﻿<ResourceDictionary
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vex="clr-namespace:Vex.Controls">
+    xmlns:vex="clr-namespace:Vex.Controls"
+    xmlns:helpers="using:CodeWF.Avalonia.Controls.Helpers">
     <Design.PreviewWith>
         <Panel Width="320" Height="120">
             <vex:VexZoomDock HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"
@@ -92,7 +93,7 @@
                                 Name="PART_Reset"
                                 Classes="vex-zoom-reset"
                                 Margin="3,0,0,0"
-                                ToolTip.Tip="{TemplateBinding ResetLabel}"
+                                helpers:ToolTipHelper.Text="{TemplateBinding ResetLabel}"
                                 AutomationProperties.Name="{TemplateBinding ResetLabel}">
                                 <Viewbox
                                     Width="{DynamicResource VexZoomDockIconSize}"
@@ -107,7 +108,7 @@
                             <Button
                                 Name="PART_Center"
                                 Classes="vex-zoom-reset"
-                                ToolTip.Tip="{TemplateBinding CenterLabel}"
+                                helpers:ToolTipHelper.Text="{TemplateBinding CenterLabel}"
                                 AutomationProperties.Name="{TemplateBinding CenterLabel}">
                                 <Viewbox
                                     Width="{DynamicResource VexZoomDockIconSize}"
