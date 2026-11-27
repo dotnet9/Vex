@@ -931,6 +931,8 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             panel.ScrollHost ??= ResolveScrollHost();
             // 只有重块参与离屏保留：轻量段落照常解体，内存占用最小。
             panel.KeepAliveCandidateResolver = IsHeavyBlockAt;
+            panel.FastDragStateChanged += (_, _) => Dispatcher.UIThread.Post(
+                () => UpdateSkeletonOverlay(panel), DispatcherPriority.Background);
             SubscribeViewerScrollHost();
         }
 
@@ -959,6 +961,64 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         if (host is not null)
         {
             host.ScrollChanged += OnViewerScrollHostChanged;
+        }
+    }
+
+
+    /// <summary>
+    /// 快拖骨架覆盖层：虚拟化窗口冻结期间（拖动大步换血），在视口上叠一组随
+    /// 内容缩放的灰条占位，替代"逐帧物化重组件"——拖动零成本，松手即消失露出真内容。
+    /// </summary>
+    private Border? _skeletonOverlay;
+
+    private void UpdateSkeletonOverlay(WindowedStackPanel panel)
+    {
+        if (_documentHost is null || panel.ScrollHost is not { } scroll)
+        {
+            return;
+        }
+
+        if (panel.IsFastDragging)
+        {
+            if (_skeletonOverlay is not null)
+            {
+                _skeletonOverlay.IsVisible = true;
+                return;
+            }
+
+            var overlay = new Border
+            {
+                IsHitTestVisible = false,
+                Background = new SolidColorBrush(Color.FromArgb(28, 128, 128, 128)),
+            };
+            // 骨架条：按视口高度生成 12 条圆角灰条，模拟文本块节奏。
+            var lines = new StackPanel { Orientation = Orientation.Vertical, Spacing = 14, Margin = new Thickness(24, 16, 24, 16) };
+            var random = new Random(42);
+            for (var i = 0; i < 12; i++)
+            {
+                var height = i % 4 == 3 ? 18 : 44;
+                var bar = new Border
+                {
+                    Height = height,
+                    CornerRadius = new CornerRadius(4),
+                    Background = new SolidColorBrush(Color.FromArgb(52, 128, 128, 128)),
+                    Width = random.Next(60, 100) / 100d * (scroll.Viewport.Width > 0 ? scroll.Viewport.Width : 600),
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                };
+                lines.Children.Add(bar);
+            }
+
+            overlay.Child = lines;
+            _skeletonOverlay = overlay;
+            var overlayHost = _documentHost.Parent as Panel ?? _documentHost;
+            overlayHost.Children.Add(overlay);
+            overlay.ZIndex = 10;
+        }
+        else if (_skeletonOverlay is not null)
+        {
+            var overlayHost = _documentHost.Parent as global::Avalonia.Controls.Panel ?? _documentHost;
+            overlayHost.Children.Remove(_skeletonOverlay);
+            _skeletonOverlay = null;
         }
     }
 
