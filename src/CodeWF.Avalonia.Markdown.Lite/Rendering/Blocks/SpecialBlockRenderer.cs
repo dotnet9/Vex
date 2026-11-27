@@ -133,15 +133,24 @@ internal sealed class SpecialBlockRenderer : IMarkdownBlockRenderer
 
     private static Control CreateToc(IMarkdownRenderContext context)
     {
+
         // 真层级（按级别缩进边距，不再用空格占位）+ 可点击跳转（点击 → 宿主滚动定位标题行）。
         var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2 };
         context.AddMarkdownClass(panel, MarkdownStyleKeys.List);
 
         var document = Markdig.Markdown.Parse(context.MarkdownText ?? string.Empty, MarkdownViewer.Pipeline);
-        foreach (var heading in document.OfType<HeadingBlock>().Where(h => h.Level is >= 1 and <= 3))
+        // 序号与大纲面板同源（MarkdownOutlineNumbering 统一计算），偏好关闭时 Number 为空串。
+        var numbered = MarkdownOutlineNumbering.WithNumbers(
+            document.OfType<HeadingBlock>().Where(h => h.Level is >= 1 and <= 3)
+                .Select(h => new MarkdownOutlineItem(h.Level, string.Empty, h.Line, h.Span.Start))
+                .ToArray());
+        var headings = document.OfType<HeadingBlock>().Where(h => h.Level is >= 1 and <= 3).ToArray();
+        for (var index = 0; index < headings.Length; index++)
         {
+            var heading = headings[index];
+            var numberPrefix = numbered[index].Number is { Length: > 0 } n && context.ShowTocNumbers ? n + ' ' : string.Empty;
             var item = context.CreateSelectableText(MarkdownStyleKeys.ListMarker);
-            item.Text = MarkdownPlainTextExtractor.ExtractPlainText(heading.Inline);
+            item.Text = numberPrefix + MarkdownPlainTextExtractor.ExtractPlainText(heading.Inline);
             item.TextWrapping = TextWrapping.Wrap;
             item.Cursor = new global::Avalonia.Input.Cursor(global::Avalonia.Input.StandardCursorType.Hand);
             // 层级缩进 = 每级 2 字符（Typora 同款），封顶 4 级——深级不再歪斜扩散。

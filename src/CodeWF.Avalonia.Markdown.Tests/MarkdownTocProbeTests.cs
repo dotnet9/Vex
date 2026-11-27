@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Rendering;
 
 using Xunit;
 
@@ -71,4 +72,56 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 		[System.Runtime.CompilerServices.CallerFilePath] string testFile = "") =>
 		System.IO.Path.GetFullPath(System.IO.Path.Combine(
 			System.IO.Path.GetDirectoryName(testFile)!, "..", "..", relativePath));
+
+	[Fact]
+	public void Probe_TocNumbers_ToggleChangesText() => platform.Run(() =>
+	{
+		var doc = "[TOC]\n\n# A 标题\n\n## B 标题\n";
+		var viewer = new MarkdownViewer { Markdown = doc };
+		var window = new Window { Width = 600, Height = 400, Content = viewer };
+		window.Show();
+		try
+		{
+			for (var pass = 0; pass < 30; pass++)
+			{
+				Dispatcher.UIThread.RunJobs();
+				window.UpdateLayout();
+			}
+
+			// TOC 条目是 SelectableTextBlock.MdListMarker（CreateToc 创建），不是段控件。
+			string Dump() => string.Join(" | ", viewer.GetVisualDescendants()
+				.OfType<SelectableTextBlock>()
+				.Where(stb => stb.Classes.Contains("MdListMarker"))
+				.Select(stb => stb.Text ?? ""));
+
+			var before = Dump();
+			viewer.ShowTocNumbers = true;
+			viewer.RerenderTocBlocks();
+			for (var pass = 0; pass < 20; pass++)
+			{
+				Dispatcher.UIThread.RunJobs();
+				window.UpdateLayout();
+			}
+			var after = Dump();
+			// 序号诊断：直接调 WithNumbers，验证编号计算与 renderer 前缀条件
+			var items = new System.Collections.Generic.List<CodeWF.Avalonia.Markdown.Shared.Rendering.MarkdownOutlineItem>
+			{
+				new(1, "A", 1, 0),
+				new(2, "B", 2, 10),
+			};
+			var numbered = CodeWF.Avalonia.Markdown.Shared.Rendering.MarkdownOutlineNumbering.WithNumbers(items.ToArray());
+			var numbers = string.Join(",", numbered.Select(n => n.Level + "=" + n.Number));
+			var report = "before=[" + before + "]" + Environment.NewLine
+				+ "after=[" + after + "]" + Environment.NewLine
+				+ "showProp=" + viewer.ShowTocNumbers
+				+ " numbers=[" + numbers + "]";
+			System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\toc-number-probe.txt", report);
+		}
+		finally
+		{
+			window.Close();
+			Dispatcher.UIThread.RunJobs();
+		}
+	});
+
 }

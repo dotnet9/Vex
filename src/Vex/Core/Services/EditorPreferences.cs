@@ -30,6 +30,8 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     }
     public double FileTreeHeadingFontSize => FileListFontSize - .5;
     public int IndentSize { get => settings.Current.IndentSize ?? 2; set => Set(s => s with { IndentSize = Math.Clamp(value, 2, 8) }); }
+    /// <summary>[TOC]/大纲条目前的层级章节序号显隐（与大纲面板 ShowNumbers 同源）。</summary>
+    public bool ShowOutlineNumbers { get => settings.Current.ShowOutlineNumbers ?? false; set => Set(s => s with { ShowOutlineNumbers = value }); }
     public bool CodeWrap { get => settings.Current.CodeWrap ?? false; set => Set(s => s with { CodeWrap = value }); }
     public string BodyFont { get => settings.Current.BodyFont ?? "system"; set => Set(s => s with { BodyFont = value ?? "" }); }
     public bool SyntaxMath { get => settings.Current.SyntaxMath ?? true; set => Set(s => s with { SyntaxMath = value }); }

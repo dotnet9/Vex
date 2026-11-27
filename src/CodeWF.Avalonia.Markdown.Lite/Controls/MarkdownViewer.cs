@@ -202,6 +202,10 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     public static readonly StyledProperty<IBrush?> TocForegroundBrushProperty =
         AvaloniaProperty.Register<MarkdownViewer, IBrush?>(nameof(TocForegroundBrush));
 
+    /// <summary>[TOC] 条目是否带层级章节序号（与大纲面板序号同源同偏好）。</summary>
+    public static readonly StyledProperty<bool> ShowTocNumbersProperty =
+        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(ShowTocNumbers));
+
     public static readonly StyledProperty<IBrush?> AccentForegroundBrushProperty =
         AvaloniaProperty.Register<MarkdownViewer, IBrush?>(nameof(AccentForegroundBrush), Brushes.White);
 
@@ -455,6 +459,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         set => SetValue(TocForegroundBrushProperty, value);
     }
 
+    public bool ShowTocNumbers
+    {
+        get => GetValue(ShowTocNumbersProperty);
+        set => SetValue(ShowTocNumbersProperty, value);
+    }
+
     public IBrush? AccentBrush
     {
         get => GetValue(AccentBrushProperty);
@@ -701,6 +711,9 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         ImageBasePathProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
         ImageSourceResolverProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
         EnableVirtualizationProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
+        // [TOC] 序号开关翻动：属性到位即定向重建 TOC 块（不依赖宿主通知链——
+        // 偏好开关写 ShellOutlineViewModel/settingsStore，EditorPreferences 实例收不到通知）。
+        ShowTocNumbersProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.RerenderTocBlocks());
         VirtualizationThresholdProperty.Changed.AddClassHandler<MarkdownViewer>((viewer, _) => viewer.QueueRenderDocument(MarkdownRenderMode.Full));
         // 高亮 token 的颜色在生成时固定；代码背景资源变更也需重建，
         // 防止主题切换后仍保留与新底色相反的 token 配色。
@@ -857,6 +870,28 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     public void Rerender()
     {
         QueueRenderDocument(MarkdownRenderMode.Full);
+    }
+
+    /// <summary>
+    /// 定向重建全部 [TOC] 块：序号/前景等 TOC 偏好翻动时文本未变，增量渲染会被
+    /// diff 短路——按 Kind 定位 TOC 块，走 SetCodeBlockFolded 同款定向重建模式。
+    /// 偏好每 200ms 节流一次，多开关连点不会风暴。
+    /// </summary>
+    public void RerenderTocBlocks()
+    {
+        for (var index = _renderedBlocks.Count - 1; index >= 0; index--)
+        {
+            var rendered = _renderedBlocks[index];
+            if (rendered.Kind != MarkdownBlockKind.Toc) continue;
+            var block = _renderedModel.Blocks[index];
+            var renderedNew = CreateRenderedBlocks([block], Markdown ?? string.Empty, _renderedModel.Blocks.Count);
+            if (renderedNew.Count > 0)
+            {
+                ReplaceRenderedBlocks(index, index + 1, renderedNew, _renderedModel);
+            }
+        }
+        InvalidateDocumentLayout();
+        ReapplySearchIfActive();
     }
 
     public void RenderIncremental()
@@ -2101,6 +2136,8 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         AddMarkdownClass(control, classes);
 
     IBrush? Rendering.IMarkdownRenderContext.TocForegroundBrush => TocForegroundBrush;
+
+    bool Rendering.IMarkdownRenderContext.ShowTocNumbers => ShowTocNumbers;
 
     Rendering.MarkdownMathViewFactory? Rendering.IMarkdownRenderContext.MathViewFactory => s_mathViewFactory;
 

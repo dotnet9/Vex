@@ -125,6 +125,9 @@ public interface IMarkdownRenderContext
     /// <summary>[TOC] 条目前景色（文档导航链接语义）；null 时渲染器用 AccentBrush。</summary>
     IBrush? TocForegroundBrush { get; }
 
+    /// <summary>[TOC] 条目是否带层级章节序号（1.1、1.1.1）；与大纲面板 ShowNumbers 同一偏好。</summary>
+    bool ShowTocNumbers { get; }
+
     MarkdownMathViewFactory? MathViewFactory { get; }
 
     Control? CreateMathView(string latex, double fontSize, MarkdownMathLineStyle lineStyle);

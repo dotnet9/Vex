@@ -58,6 +58,7 @@
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}"
                 TocForegroundBrush="{DynamicResource VexAccentBrush}"
+
                 TableHeaderBackgroundBrush="{DynamicResource VexDocumentSelectionBrush}" />
             </LayoutTransformControl>
             </Grid>

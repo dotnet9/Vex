@@ -109,6 +109,15 @@ public partial class MarkdownPreviewView : UserControl
         // 持续改写偏移数秒——表现正是「滚动后点击视图漂移、光标下文字换了位导致误选」。
         PreviewScrollViewer.AddHandler(PointerWheelChangedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
         PreviewScrollViewer.AddHandler(PointerPressedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
+        // 大纲序号开关翻动 → [TOC] 条目前缀随同变化：开关写在 ShellOutlineViewModel
+        // （容器单例，写入 settingsStore），EditorPreferences 实例收不到通知——
+        // 这里直接订阅 Outline VM 属性，值同步到 viewer 属性（属性变更处理器
+        // ShowTocNumbersProperty.Changed 定向重建 TOC 块）。
+        var outlineVm = App.Services.GetRequiredService<Vex.Modules.Shell.ViewModels.ShellOutlineViewModel>();
+        outlineVm.PropertyChanged -= OnOutlinePropertyChanged;
+        outlineVm.PropertyChanged += OnOutlinePropertyChanged;
+        DetachedFromVisualTree += (_, _) => outlineVm.PropertyChanged -= OnOutlinePropertyChanged;
+        PreviewMarkdownViewer.ShowTocNumbers = outlineVm.ShowOutlineNumbers;
         // 滚轮步长对齐浏览器/Typora（~120px/格）：默认 50px/格在巨文档下内容与缩略条
         // 都几乎不动（339K px 文档每格仅挪 0.015% 轨道），观感即「滚动条不跟随」。
         PreviewScrollViewer.AddHandler(PointerWheelChangedEvent, (sender, e) =>
@@ -201,7 +210,32 @@ public partial class MarkdownPreviewView : UserControl
     private long _lastWheelDiagTick;
     private long _lastScrollDiagTick;
 
+    // 大纲序号开关 → viewer.ShowTocNumbers 同步；属性变更处理器定向重建 TOC 块。
+    private void OnOutlinePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(Vex.Modules.Shell.ViewModels.ShellOutlineViewModel.ShowOutlineNumbers)) return;
+        if (sender is Vex.Modules.Shell.ViewModels.ShellOutlineViewModel outline)
+        {
+            PreviewMarkdownViewer.ShowTocNumbers = outline.ShowOutlineNumbers;
+        }
+    }
+
     // 滚动诊断：控件侧节流输出，接 Logger 落盘（定位滚动条脱节机理）。
+    // 大纲序号开关翻动 → [TOC] 条目前缀随同变化（节流 200ms，增量重渲染重建 TOC 块）。
+    private long _lastPreferenceTick;
+    private void OnPreferencesChanged(object? sender, EventArgs e)
+    {
+        var now = Environment.TickCount64;
+        if (now - _lastPreferenceTick < 200) return;
+        _lastPreferenceTick = now;
+        Dispatcher.UIThread.Post(() =>
+        {
+            // 定向重建 [TOC] 块：序号是渲染产物，文本未变时增量渲染会被 diff 短路。
+            // 与 SetCodeBlockFolded 的定向重建同模式：按 Kind 找 TOC 块索引重渲染。
+            PreviewMarkdownViewer.RerenderTocBlocks();
+        }, DispatcherPriority.Background);
+    }
+
     private static void OnScrollDiagnostics(CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel panel, string line) =>
         CodeWF.Toolkit.Logging.Logger.Debug("滚动诊断 " + line);
 
@@ -331,6 +365,7 @@ public partial class MarkdownPreviewView : UserControl
         if (_viewModel is not null)
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _viewModel.Preferences.PreferencesChanged -= OnPreferencesChanged;
         }
 
         _viewModel = viewModel;
@@ -338,6 +373,7 @@ public partial class MarkdownPreviewView : UserControl
         if (_viewModel is not null)
         {
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _viewModel.Preferences.PreferencesChanged += OnPreferencesChanged;
             ApplyRemoteImageRefresh(_viewModel.RemoteImageRefreshVersion);
             QueueScrollToEditorPosition();
         }
