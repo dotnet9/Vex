@@ -247,18 +247,12 @@ public class WindowedStackPanel : Panel
         AffectsArrange<WindowedStackPanel>(SpacingProperty);
     }
 
-    public void AddItem(Control control, bool pinned = false, bool pinnedByKind = false, double estimatedHeight = 0) =>
-        InsertItem(_entries.Count, control, pinned, pinnedByKind, estimatedHeight);
+    public void AddItem(Control control, bool pinned = false, bool pinnedByKind = false) =>
+        InsertItem(_entries.Count, control, pinned, pinnedByKind);
 
-    public void InsertItem(int index, Control control, bool pinned = false, bool pinnedByKind = false, double estimatedHeight = 0)
+    public void InsertItem(int index, Control control, bool pinned = false, bool pinnedByKind = false)
     {
         var entry = new ItemEntry(control, pinned, pinnedByKind);
-        // 预填估算高度：Measured 保持 false（真实量测后覆盖），但 ResolveSize 优先用
-        // Size —— extent 首帧即接近真实，锚点补偿大幅缩小；无估算时走全局回退。
-        if (estimatedHeight > 0)
-        {
-            entry.Size = estimatedHeight;
-        }
         index = Math.Clamp(index, 0, _entries.Count);
         _entries.Insert(index, entry);
         for (var i = 0; i < _pinnedIndices.Count; i++)
@@ -563,9 +557,6 @@ public class WindowedStackPanel : Panel
         }
     }
 
-    /// <summary>上一帧的量测结果（快拖骨架冻结期直接复用，不重算不物化）。</summary>
-    private Size _lastMeasureResult;
-
     protected override Size MeasureOverride(Size availableSize)
     {
         PrepareAnchor();
@@ -577,13 +568,6 @@ public class WindowedStackPanel : Panel
         if (_fastDragging)
         {
             _fastDraggingFirstFrame = false;
-        }
-        // 冻结期（虚拟化保持开启）：不重算窗口、不物化新条目、不碰锚点——直接返回
-        // 上一帧尺寸。此前误把冻结实现为「关闭虚拟化」= 每帧全量物化 1600 重块
-        // （秒级假死的真凶）。extent 保持估算值 → 滚动条位置稳定不跳。
-        if (IsVirtualizing && _fastDragging && !_fastDraggingFirstFrame)
-        {
-            return _lastMeasureResult;
         }
         // Auto 列先按无限宽查询自然尺寸；短文档须把该约束传给图片和文本。
         var width = double.IsFinite(availableSize.Width) || !virtualizing ? availableSize.Width : _lastWidth;
@@ -683,7 +667,6 @@ public class WindowedStackPanel : Panel
         var size = new Size(maxWidth, Math.Max(0, y));
         _layoutIndexDirty = true;
         CompensateAnchor(size.Height);
-        _lastMeasureResult = size;
         return size;
     }
 
@@ -1165,7 +1148,7 @@ public class WindowedStackPanel : Panel
     private void RefreshEstimateFallback() => _estimateFallbackHeight = MeasuredAverageHeight;
 
     private double ResolveSize(ItemEntry entry) =>
-        entry.Measured || entry.Size > 0 ? entry.Size : Math.Max(0, _estimateFallbackHeight);
+        entry.Measured ? entry.Size : Math.Max(0, _estimateFallbackHeight);
 
     /// <summary>条目在文档空间里实际占的高：自身槽位加上挂在它身上的装饰。</summary>
     private double BandSize(int index) =>
