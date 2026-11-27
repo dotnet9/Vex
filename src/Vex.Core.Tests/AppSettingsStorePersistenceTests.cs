@@ -23,11 +23,11 @@ public sealed class AppSettingsStorePersistenceTests
     }
 
     [Fact]
-    public void MissingFile_FallsBackToDefaults_VirtualizationOn()
+    public void MissingFile_FallsBackToDefaults_VirtualizationOff()
     {
         using var redirect = new Redirected();
         var store = new AppSettingsStore();
-        Assert.True(store.Current.ReadingVirtualization);
+        Assert.False(store.Current.ReadingVirtualization);
         Assert.False(File.Exists(redirect.FilePath), "load must not create the file");
     }
 
@@ -65,7 +65,7 @@ public sealed class AppSettingsStorePersistenceTests
         File.WriteAllText(redirect.FilePath, "{ not valid json !!");
 
         var store = new AppSettingsStore();
-        Assert.True(store.Current.ReadingVirtualization);
+        Assert.False(store.Current.ReadingVirtualization);
     }
 
     [Fact]

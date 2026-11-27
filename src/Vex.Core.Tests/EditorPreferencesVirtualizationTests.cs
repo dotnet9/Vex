@@ -24,10 +24,10 @@ public sealed class EditorPreferencesVirtualizationTests
     }
 
     [Fact]
-    public void ReadingVirtualization_DefaultsToOn()
+    public void ReadingVirtualization_DefaultsToOff()
     {
-        Assert.True(new AppSettings().ReadingVirtualization);
-        Assert.True(new EditorPreferences(new MemoryStore()).ReadingVirtualization);
+        Assert.False(new AppSettings().ReadingVirtualization);
+        Assert.False(new EditorPreferences(new MemoryStore()).ReadingVirtualization);
     }
 
     [Fact]
@@ -38,13 +38,13 @@ public sealed class EditorPreferencesVirtualizationTests
         var notifications = new List<string?>();
         preferences.PropertyChanged += (_, e) => notifications.Add(e.PropertyName);
 
-        preferences.ReadingVirtualization = false;
-        Assert.False(preferences.ReadingVirtualization);
-        Assert.False(store.Current.ReadingVirtualization);
+        preferences.ReadingVirtualization = true;
+        Assert.True(preferences.ReadingVirtualization);
+        Assert.True(store.Current.ReadingVirtualization);
         Assert.Contains(nameof(EditorPreferences.ReadingVirtualization), notifications);
 
         // 同值不重复落盘。
-        preferences.ReadingVirtualization = false;
+        preferences.ReadingVirtualization = true;
         Assert.Equal(1, store.UpdateCalls);
 
         preferences.ReadingVirtualization = true;
