@@ -563,6 +563,9 @@ public class WindowedStackPanel : Panel
         }
     }
 
+    /// <summary>上一帧的量测结果（快拖骨架冻结期直接复用，不重算不物化）。</summary>
+    private Size _lastMeasureResult;
+
     protected override Size MeasureOverride(Size availableSize)
     {
         PrepareAnchor();
@@ -574,6 +577,13 @@ public class WindowedStackPanel : Panel
         if (_fastDragging)
         {
             _fastDraggingFirstFrame = false;
+        }
+        // 冻结期（虚拟化保持开启）：不重算窗口、不物化新条目、不碰锚点——直接返回
+        // 上一帧尺寸。此前误把冻结实现为「关闭虚拟化」= 每帧全量物化 1600 重块
+        // （秒级假死的真凶）。extent 保持估算值 → 滚动条位置稳定不跳。
+        if (IsVirtualizing && _fastDragging && !_fastDraggingFirstFrame)
+        {
+            return _lastMeasureResult;
         }
         // Auto 列先按无限宽查询自然尺寸；短文档须把该约束传给图片和文本。
         var width = double.IsFinite(availableSize.Width) || !virtualizing ? availableSize.Width : _lastWidth;
@@ -673,6 +683,7 @@ public class WindowedStackPanel : Panel
         var size = new Size(maxWidth, Math.Max(0, y));
         _layoutIndexDirty = true;
         CompensateAnchor(size.Height);
+        _lastMeasureResult = size;
         return size;
     }
 

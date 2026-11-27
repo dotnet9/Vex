@@ -152,6 +152,11 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
                 Dispatcher.UIThread.RunJobs();
                 window.UpdateLayout();
 
+                // 快拖骨架冻结期（连续大跳 <150ms）内视口暂不物化——断言前等待退出骨架。
+                Thread.Sleep(200);
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+
                 AssertViewportFullyRealized(panel, scroll);
                 AssertViewportContentReady(panel, scroll);
             }
