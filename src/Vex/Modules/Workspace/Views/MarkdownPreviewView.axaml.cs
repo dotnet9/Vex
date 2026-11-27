@@ -44,6 +44,8 @@ public partial class MarkdownPreviewView : UserControl
     private bool _restoreQueued;
     private string? _restoreSource;
     private int _scrollRequestVersion;
+    /// <summary>导航收敛环自己驱动视口的标志：ScrollChanged 见到非本标志驱动的偏移变更即作废导航。</summary>
+    private bool _navDrivingOffset;
     private int _restoreAttempts;
     private bool _restoreSettleQueued;
     private const int MaxRestoreAttempts = 24;
@@ -310,7 +312,19 @@ public partial class MarkdownPreviewView : UserControl
     }
 
     private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
-    {        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
+    {
+        if (_navDrivingOffset)
+        {
+            _navDrivingOffset = false;
+        }
+        else if (_outlineNavigation is not null && e.OffsetDelta != default)
+        {
+            // 非导航驱动的视口变更（编辑器光标跟随/恢复阅读位/宿主程序化滚动）：
+            // 作废在途收敛环，否则它会把视口拽回导航目标（AOT 门禁 reading-follow 实锤）。
+            _outlineNavigation.Dispose();
+            _outlineNavigation = null;
+        }
+        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
         {
             return;
         }
@@ -520,6 +534,7 @@ public partial class MarkdownPreviewView : UserControl
                 var limit = Math.Max(0, PreviewScrollViewer.Extent.Height - PreviewScrollViewer.Viewport.Height);
                 var offset = Math.Clamp(PreviewScrollViewer.Offset.Y + target.Y - 14, 0, limit);
                 stable = Math.Abs(offset - PreviewScrollViewer.Offset.Y) < 1 ? stable + 1 : 0;
+                _navDrivingOffset = true;
                 PreviewScrollViewer.Offset = new Vector(PreviewScrollViewer.Offset.X, offset);
                 if (stable >= 3)
                 {
@@ -623,6 +638,16 @@ public partial class MarkdownPreviewView : UserControl
         if (_viewModel is null || _restoringScrollPosition || _viewModel.IsPresenting)
         {
             return;
+        }
+
+        // 光标跟随要动视口：先作废在途的大纲导航收敛环，否则导航定时器（最长活 5 秒）
+        // 会把视口拽回导航目标，跟随与导航互相拉锯——阅读位置停不住、采样也被导航
+        // 活着时的闸门拦住（AOT 门禁 reading-follow 实锤）。恢复阅读位同理由版本号兜底。
+        _scrollRequestVersion++;
+        if (_outlineNavigation is not null)
+        {
+            _outlineNavigation.Dispose();
+            _outlineNavigation = null;
         }
 
         // 库返回的边界在正文自己的坐标系里，缩放时换算到滚动坐标才能对上落点。

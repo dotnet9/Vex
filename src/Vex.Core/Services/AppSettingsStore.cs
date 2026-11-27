@@ -203,7 +203,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
             SyntaxHighlight = Get<bool?>(configuration, SyntaxHighlight),
             SyntaxAutoLinks = Get<bool?>(configuration, SyntaxAutoLinks),
             SyntaxSoftBreaks = Get<bool?>(configuration, SyntaxSoftBreaks),
-            ReadingVirtualization = Get<bool?>(configuration, ReadingVirtualization) ?? true,
+            ReadingVirtualization = Get<bool?>(configuration, ReadingVirtualization) ?? false,
             ImageCopy = Get<bool?>(configuration, ImageCopy),
             ImageRelative = Get<bool?>(configuration, ImageRelative),
             ImageFolder = Get<string>(configuration, ImageFolder) ?? "assets",

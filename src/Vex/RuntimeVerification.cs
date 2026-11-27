@@ -33,6 +33,10 @@ internal static class RuntimeVerification
     {
         Run(directory);
         _uiDirectory = Path.GetFullPath(directory);
+        // 偏好真隔离：重定向到验证目录内的独立配置（此前一直读写用户真实 settings.json，
+        // 门禁结果随宿主机器的用户配置漂移），沙箱按当前默认值生成，门禁可复现。
+        Vex.Core.Services.AppSettingsStore.ConfigFilePathOverride =
+            Path.Combine(_uiDirectory, "settings.json");
         new AppSettingsStore().Update(settings => settings with
         {
             HasSeenOnboardingGuide = true, IsMcpServerEnabled = false, MotionMode = "off"
