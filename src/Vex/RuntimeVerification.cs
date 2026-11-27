@@ -220,7 +220,7 @@ internal static class RuntimeVerification
                 var panel = viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
                 throw new TimeoutException(
                     $"Native outline navigation timed out at [{stage}]; offset={scroll.Offset.Y:0} extent={scroll.Extent.Height:0} "
-                    + $"fastDragging={(panel?.IsFastDragging ?? false)} realized={(panel?.RealizedItemCount ?? -1)}/{(panel?.ItemCount ?? -1)} "
+                    + $"realized={(panel?.RealizedItemCount ?? -1)}/{(panel?.ItemCount ?? -1)} "
                     + $"outlineCurrent={(outline.CurrentOutlineItem is null ? "null" : outline.CurrentOutlineItem.Line.ToString())}");
             }
         }

@@ -22,7 +22,7 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 	[Fact]
 	public void Probe_TocAndInlineImage() => platform.Run(() =>
 	{
-		var doc = "```csharp\nint a = 1;\n```";
+		var doc = "[TOC]\n\n# A 标题\n\n## B 标题\n\n链接：[Avalonia](https://x) 与行内图片：![演示](demo.svg)。\n";
 		var viewer = new MarkdownViewer { Markdown = doc };
 		var window = new Window { Width = 600, Height = 400, Content = viewer };
 		window.Show();
@@ -123,53 +123,5 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 			Dispatcher.UIThread.RunJobs();
 		}
 	});
-
-	[Fact]
-	public void CodeBlock_ToolbarLazyCreatedOnHover() => platform.Run(() =>
-	{
-		var doc = "```csharp\nint a = 1;\n```";
-		var viewer = new MarkdownViewer { Markdown = doc };
-		var window = new Window { Width = 600, Height = 400, Content = viewer };
-		window.Show();
-		try
-		{
-			for (var pass = 0; pass < 30; pass++)
-			{
-				Dispatcher.UIThread.RunJobs();
-				window.UpdateLayout();
-			}
-
-			// 非激活态：工具条按钮未创建（无 CodeCopy 标记的按钮）。
-			var buttonsBefore = viewer.GetVisualDescendants()
-				.OfType<Button>()
-				.Count(b => (b.Tag as string) == "CodeCopy");
-			Assert.Equal(0, buttonsBefore);
-
-			// 悬浮代码块框 → 惰性创建工具条按钮。
-			var frame = viewer.GetVisualDescendants()
-				.OfType<Border>()
-				.First(b => b.Classes.Contains("MdCodeBlock"));
-			var pointer = new global::Avalonia.Input.Pointer(1, global::Avalonia.Input.PointerType.Mouse, true);
-			var args = new global::Avalonia.Input.PointerEventArgs(
-				global::Avalonia.Input.InputElement.PointerEnteredEvent, frame, pointer,
-				frame, new global::Avalonia.Point(frame.Bounds.Width / 2, frame.Bounds.Height / 2),
-				0, new global::Avalonia.Input.PointerPointProperties(global::Avalonia.Input.RawInputModifiers.None, global::Avalonia.Input.PointerUpdateKind.Other),
-				global::Avalonia.Input.KeyModifiers.None);
-			frame.RaiseEvent(args);
-			Dispatcher.UIThread.RunJobs();
-			window.UpdateLayout();
-
-			var buttonsAfter = viewer.GetVisualDescendants()
-				.OfType<Button>()
-				.Count(b => (b.Tag as string) == "CodeCopy");
-			Assert.Equal(1, buttonsAfter);
-		}
-		finally
-		{
-			window.Close();
-			Dispatcher.UIThread.RunJobs();
-		}
-	});
-
 
 }

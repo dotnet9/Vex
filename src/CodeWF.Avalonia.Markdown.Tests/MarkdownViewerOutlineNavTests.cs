@@ -62,14 +62,11 @@ public sealed class MarkdownViewerOutlineNavTests(AvaloniaPlatformFixture platfo
                 Thread.Sleep(10);
             }
 
-            var skeletonEngaged = false;
-
-            // 模拟产品导航定时器节奏：50ms/跳（<150ms 骨架判据），验证收敛不被快拖骨架劫持。
+            // 模拟产品导航定时器节奏：50ms/跳，验证滚动落点在分帧建块下收敛。
             var targetLine = 39 * 18 + 1;
             var deadline = Environment.TickCount64 + 8000;
             while (Environment.TickCount64 < deadline)
             {
-                skeletonEngaged |= IsFastDragging(viewer);
                 if (!viewer.TryGetSourceLineBounds(targetLine, out var bounds)) continue;
                 var target = viewer.TranslatePoint(new Point(0, bounds.Top), scroll)!.Value;
                 var limit = Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height);
@@ -93,7 +90,7 @@ public sealed class MarkdownViewerOutlineNavTests(AvaloniaPlatformFixture platfo
             Assert.True(viewer.TryGetSourceLineBounds(targetLine, out var finalBounds), "收敛后目标行仍应有边界");
             var finalTop = viewer.TranslatePoint(new Point(0, finalBounds.Top), scroll)!.Value.Y;
             Assert.True(Math.Abs(finalTop - 14) < 2,
-                $"落点应收敛到 14px±2，实际 {finalTop:0.0}（extent={scroll.Extent.Height:0} offset={scroll.Offset.Y:0} skeleton={skeletonEngaged} fastDragging={IsFastDragging(viewer)}）");
+                $"落点应收敛到 14px±2，实际 {finalTop:0.0}（extent={scroll.Extent.Height:0} offset={scroll.Offset.Y:0}）");
         }
         finally
         {
@@ -101,10 +98,4 @@ public sealed class MarkdownViewerOutlineNavTests(AvaloniaPlatformFixture platfo
             Dispatcher.UIThread.RunJobs();
         }
     });
-
-    private static bool IsFastDragging(MarkdownViewer viewer)
-    {
-        var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().FirstOrDefault();
-        return panel is not null && panel.IsFastDragging;
-    }
 }

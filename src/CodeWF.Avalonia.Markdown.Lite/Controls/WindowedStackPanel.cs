@@ -799,11 +799,7 @@ public class WindowedStackPanel : Panel
     private int _consecutiveJumps;
     private DispatcherTimer? _fastDragResumeTimer;
 
-    /// <summary>快拖骨架模式进行中（物化集合冻结，视口内容为骨架占位）。</summary>
-    public bool IsFastDragging => _fastDragging;
-
-    /// <summary>快拖骨架模式进入/退出通知（宿主可显示骨架覆盖层）。</summary>
-    public event EventHandler? FastDragStateChanged;
+    private bool IsFastDragging => _fastDragging;
 
     private void OnScrollHostChanged(object? sender, ScrollChangedEventArgs e)
     {
@@ -843,7 +839,6 @@ public class WindowedStackPanel : Panel
                     _fastDragResumeTimer ??= CreateFastDragResumeTimer();
                     _fastDragResumeTimer.Stop();
                     _fastDragResumeTimer.Start();
-                    FastDragStateChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
 
@@ -860,7 +855,6 @@ public class WindowedStackPanel : Panel
                 _fastDraggingFirstFrame = false;
                 _fastDragResumeTimer?.Stop();
                 _consecutiveJumps = 0;
-                FastDragStateChanged?.Invoke(this, EventArgs.Empty);
                 InvalidateMeasure();
             }
             else if (!_fastDraggingFirstFrame)
@@ -884,7 +878,6 @@ public class WindowedStackPanel : Panel
             _fastDragging = false;
             _fastDraggingFirstFrame = false;
             timer.Stop();
-            FastDragStateChanged?.Invoke(this, EventArgs.Empty);
             InvalidateMeasure();
         };
         return timer;
