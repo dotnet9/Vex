@@ -12,15 +12,19 @@ public sealed class MarkdownTableBlock : Grid
     {
         Data = data;
         Classes.Add(MarkdownStyleKeys.TableBlock);
-        RowDefinitions = new RowDefinitions("Auto,Auto");
-        // 工具行默认收起：阅读态跳过工具条的量测/渲染（巨文档多表格累计可观），
-        // 悬浮表格区域时出现（Typora 同款交互）；工具行与表格同 Grid，移入工具行不丢焦点。
+        RowDefinitions = new RowDefinitions("Auto");
+        // 工具条悬浮叠加在表格右上角（同单元格 + 高 ZIndex），显隐不改变表格位置——
+        // 曾放独立 Auto 工具行：悬浮出现→表格下移→指针落出网格→收起→表格回弹→再进入，
+        // 布局振荡表现为表格不停晃动（真机复现）；叠加定位从结构上消除该环。
         tools.IsVisible = false;
         PointerEntered += (_, _) => tools.IsVisible = true;
         PointerExited += (_, _) => tools.IsVisible = false;
         Children.Add(tools);
         Children.Add(table);
-        SetRow(table, 1);
+        SetRow(table, 0);
+        SetRow(tools, 0);
+        tools.ZIndex = 1;
+        tools.VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Top;
     }
 
     public MarkdownTableData Data { get; }
