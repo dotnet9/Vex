@@ -194,6 +194,14 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     public static readonly StyledProperty<IBrush?> AccentBrushProperty =
         AvaloniaProperty.Register<MarkdownViewer, IBrush?>(nameof(AccentBrush), Brushes.DodgerBlue);
 
+    /// <summary>
+    /// [TOC] 条目前景色：语义 = 文档导航链接（Typora 同款蓝色链接观感）。默认跟随
+    /// <see cref="AccentBrush"/>；宿主可显式设置应用级链接色（如 VexAccentBrush）
+    /// 以与正文行内链接区分。配置 UI 的应用主题切换需同时刷新此值。
+    /// </summary>
+    public static readonly StyledProperty<IBrush?> TocForegroundBrushProperty =
+        AvaloniaProperty.Register<MarkdownViewer, IBrush?>(nameof(TocForegroundBrush));
+
     public static readonly StyledProperty<IBrush?> AccentForegroundBrushProperty =
         AvaloniaProperty.Register<MarkdownViewer, IBrush?>(nameof(AccentForegroundBrush), Brushes.White);
 
@@ -439,6 +447,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     {
         get => GetValue(MutedTextBrushProperty);
         set => SetValue(MutedTextBrushProperty, value);
+    }
+
+    public IBrush? TocForegroundBrush
+    {
+        get => GetValue(TocForegroundBrushProperty);
+        set => SetValue(TocForegroundBrushProperty, value);
     }
 
     public IBrush? AccentBrush
@@ -2085,6 +2099,8 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
 
     void Rendering.IMarkdownRenderContext.AddMarkdownClass(Control control, params string[] classes) =>
         AddMarkdownClass(control, classes);
+
+    IBrush? Rendering.IMarkdownRenderContext.TocForegroundBrush => TocForegroundBrush;
 
     Rendering.MarkdownMathViewFactory? Rendering.IMarkdownRenderContext.MathViewFactory => s_mathViewFactory;
 

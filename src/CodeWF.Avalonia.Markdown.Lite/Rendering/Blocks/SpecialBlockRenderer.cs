@@ -134,7 +134,7 @@ internal sealed class SpecialBlockRenderer : IMarkdownBlockRenderer
     private static Control CreateToc(IMarkdownRenderContext context)
     {
         // 真层级（按级别缩进边距，不再用空格占位）+ 可点击跳转（点击 → 宿主滚动定位标题行）。
-        var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 4 };
+        var panel = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2 };
         context.AddMarkdownClass(panel, MarkdownStyleKeys.List);
 
         var document = Markdig.Markdown.Parse(context.MarkdownText ?? string.Empty, MarkdownViewer.Pipeline);
@@ -144,13 +144,22 @@ internal sealed class SpecialBlockRenderer : IMarkdownBlockRenderer
             item.Text = MarkdownPlainTextExtractor.ExtractPlainText(heading.Inline);
             item.TextWrapping = TextWrapping.Wrap;
             item.Cursor = new global::Avalonia.Input.Cursor(global::Avalonia.Input.StandardCursorType.Hand);
-            item.Margin = new Thickness((heading.Level - 1) * 16, 0, 0, 0);
-            // Typora 式 TOC 条目：正文前景色，悬浮显示下划线示意可点击。
-            context.BindTheme(item, SelectableTextBlock.ForegroundProperty, MarkdownViewer.TextBrushProperty);
+            // 层级缩进 = 每级 2 字符（Typora 同款），封顶 4 级——深级不再歪斜扩散。
+            item.Margin = new Thickness(Math.Min(heading.Level - 1, 4) * 28, 0, 0, 0);
+            // TOC 条目 = 链接语义（Typora 同款）：accent 前景 + 手型光标，默认无下划线；
+            // 悬浮时下划线出现——「这是一个链接」由悬浮反馈表达，不靠常显装饰。
+            // 前景优先取宿主的 TocForegroundBrush（应用级链接色 VexAccentBrush，
+            // 不随排版主题品牌色漂移）；未设置时回落 AccentBrush。
+            if (context.TocForegroundBrush is { } tocForeground)
+            {
+                item.SetValue(SelectableTextBlock.ForegroundProperty, tocForeground);
+            }
+            else
+            {
+                context.BindTheme(item, SelectableTextBlock.ForegroundProperty, MarkdownViewer.AccentBrushProperty);
+            }
             context.BindTheme(item, SelectableTextBlock.FontFamilyProperty, MarkdownViewer.ContentFontFamilyProperty);
             context.BindTheme(item, SelectableTextBlock.FontSizeProperty, MarkdownViewer.ParagraphFontSizeProperty);
-            item.PointerEntered += (_, _) => item.TextDecorations = TextDecorations.Underline;
-            item.PointerExited += (_, _) => item.TextDecorations = null;
             var line = heading.Line;
             item.PointerReleased += (_, e) =>
             {

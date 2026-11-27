@@ -122,6 +122,9 @@ public interface IMarkdownRenderContext
     /// 数学视图工厂（CodeWF.Avalonia.Markdown.Math 包注册）；为 null 或返回 null 时
     /// 由调用方降级为原文渲染。
     /// </summary>
+    /// <summary>[TOC] 条目前景色（文档导航链接语义）；null 时渲染器用 AccentBrush。</summary>
+    IBrush? TocForegroundBrush { get; }
+
     MarkdownMathViewFactory? MathViewFactory { get; }
 
     Control? CreateMathView(string latex, double fontSize, MarkdownMathLineStyle lineStyle);
