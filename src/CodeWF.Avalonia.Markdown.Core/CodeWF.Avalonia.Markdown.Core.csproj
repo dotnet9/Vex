@@ -10,7 +10,7 @@
     <PackageTags>markdown;editor;block;core;codewf</PackageTags>
     <IsPackable>true</IsPackable>
     <!-- 迁入库沿用 CodeWF.Avalonia 的 12.1.6.x 版本线，与 Vex 应用版本分开管理。 -->
-    <Version>12.2.0.1</Version>
+    <Version>12.2.0.2</Version>
   </PropertyGroup>
 
 </Project>
