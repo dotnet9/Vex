@@ -1150,15 +1150,25 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             }
         }
 
-        // 分帧建块进行中：滚动事件同步插队补一块（游标即互斥，不会重复或乱序），
+        // 分帧建块进行中：滚动事件插队补一块（游标即互斥，不会重复或乱序），
         // 让已建区追上滚动位置，用户不会滚进未建的空白区。
+        // 必须延后到下一帧：本处理器会在布局提交（RaiseScrollChanged）中被同步调用，
+        // 而导航定位（TryGetSourceOffsetBoundsNow）的 UpdateLayout 又会重入布局——
+        // 在布局内同步建块曾撞出 SVG transform 集合越界与主线程死锁（AOT 门禁实锤）。
         if (_chunkedBuildActive)
         {
             var tick = Environment.TickCount64;
             if (tick - _chunkedBuildLastBoostTick >= ChunkedBuildBoostIntervalMs)
             {
                 _chunkedBuildLastBoostTick = tick;
-                BuildNextChunk(_chunkedBuildGeneration, ChunkedBuildChunkSize);
+                var generation = _chunkedBuildGeneration;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (_chunkedBuildActive && generation == _chunkedBuildGeneration && !_isBuildingChunk)
+                    {
+                        BuildNextChunk(generation, ChunkedBuildChunkSize);
+                    }
+                }, DispatcherPriority.Background);
             }
         }
 
@@ -1380,12 +1390,29 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// 每帧刷新选区块表、布局与搜索；还有剩余时按 Background 优先级排下一帧，建完收尾。
     /// 游标即互斥——滚动插队与挂起续建帧各自推进游标，不会重复或乱序。
     /// </summary>
+    /// <summary>建块重入守卫：布局重入期间（ScrollChanged 同步链）再入会撞出集合越界/死锁。</summary>
+    private bool _isBuildingChunk;
+
     private void BuildNextChunk(int generation, int modelBlockCount)
     {
-        if (generation != _chunkedBuildGeneration || _documentHost is null)
+        if (generation != _chunkedBuildGeneration || _documentHost is null || _isBuildingChunk)
         {
             return;
         }
+
+        _isBuildingChunk = true;
+        try
+        {
+            BuildNextChunkCore(generation, modelBlockCount);
+        }
+        finally
+        {
+            _isBuildingChunk = false;
+        }
+    }
+
+    private void BuildNextChunkCore(int generation, int modelBlockCount)
+    {
 
         var take = Math.Min(modelBlockCount, _chunkedBuildTotalBlocks - _chunkedBuildNextModelIndex);
         if (take <= 0)

@@ -150,7 +150,19 @@ internal static class RuntimeVerification
         var path = Path.Combine(_uiDirectory, "outline-navigation.md");
         File.WriteAllText(path, source);
         var opening = model.OpenPathAsync(path);
-        Wait(() => opening.IsCompleted); opening.GetAwaiter().GetResult();
+        var openDeadline = Environment.TickCount64 + 30000;
+        while (!opening.IsCompleted)
+        {
+            if (Environment.TickCount64 >= openDeadline) throw new TimeoutException("Outline document opening timed out.");
+            var frame = new DispatcherFrame();
+            var kick = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+            kick.Tick += (_, _) => { window.UpdateLayout(); frame.Continue = false; };
+            kick.Start();
+            Dispatcher.UIThread.PushFrame(frame);
+            kick.Stop();
+        }
+
+        opening.GetAwaiter().GetResult();
         model.Workbench.SelectLayout(WorkbenchLayoutKeys.Read); model.Layout.IsOutlineVisible = true;
         var preview = window.Workspace.FindControl<Modules.Workspace.Views.MarkdownPreviewView>("PreviewGuideTarget")!;
         var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
@@ -161,11 +173,11 @@ internal static class RuntimeVerification
         Wait(() => viewer.CurrentModel.Source == source && outline.OutlineItems.Count == 50);
         var target = outline.OutlineItems[39];
         Activate(39);
-        Wait(() => scroll.Offset.Y > 5000);
-        Wait(() => Landed(target.Line)); Settle();
+        Wait(() => scroll.Offset.Y > 5000, "jump-after-activate");
+        Wait(() => Landed(target.Line), "landed-first"); Settle();
         scroll.Offset = default;
         Activate(39);
-        Wait(() => Landed(target.Line)); Settle();
+        Wait(() => Landed(target.Line), "landed-second");
         if (!ReferenceEquals(outline.CurrentOutlineItem, target)) throw new InvalidOperationException("Native outline lost source identity.");
         scroll.Focus();
         var focused = window.FocusManager?.GetFocusedElement();
@@ -173,7 +185,7 @@ internal static class RuntimeVerification
         if (!viewer.TryGetSourceLineBounds(earlier.Line, out var bounds)) throw new InvalidOperationException("Native source bounds missing.");
         var point = viewer.TranslatePoint(new Point(0, bounds.Top), scroll)!.Value;
         scroll.Offset = new Vector(0, Math.Max(0, scroll.Offset.Y + point.Y - 14));
-        Wait(() => ReferenceEquals(outline.CurrentOutlineItem, earlier));
+        Wait(() => ReferenceEquals(outline.CurrentOutlineItem, earlier), "reading-follow");
         if (!ReferenceEquals(focused, window.FocusManager?.GetFocusedElement()) || model.Markdown != source)
             throw new InvalidOperationException("Native reading follow changed focus or source.");
         using var bitmap = new RenderTargetBitmap(new PixelSize(1280, 820));
@@ -189,7 +201,7 @@ internal static class RuntimeVerification
             && viewer.TranslatePoint(new Point(0, sourceBounds.Top), scroll) is { } targetPoint
             && Math.Abs(targetPoint.Y - 14) < 2;
         void Settle() { var until = Environment.TickCount64 + 250; Wait(() => Environment.TickCount64 >= until); }
-        void Wait(Func<bool> condition)
+        void Wait(Func<bool> condition, string stage = "unnamed")
         {
             var deadline = Environment.TickCount64 + 15000;
             var frame = new DispatcherFrame();
@@ -203,7 +215,14 @@ internal static class RuntimeVerification
             timer.Start();
             try { Dispatcher.UIThread.PushFrame(frame); }
             finally { timer.Stop(); }
-            if (!passed) throw new TimeoutException("Native outline navigation or reading follow timed out.");
+            if (!passed)
+            {
+                var panel = viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().FirstOrDefault();
+                throw new TimeoutException(
+                    $"Native outline navigation timed out at [{stage}]; offset={scroll.Offset.Y:0} extent={scroll.Extent.Height:0} "
+                    + $"fastDragging={(panel?.IsFastDragging ?? false)} realized={(panel?.RealizedItemCount ?? -1)}/{(panel?.ItemCount ?? -1)} "
+                    + $"outlineCurrent={(outline.CurrentOutlineItem is null ? "null" : outline.CurrentOutlineItem.Line.ToString())}");
+            }
         }
     }
 
