@@ -9,13 +9,17 @@ internal sealed record MarkdownSelectionBlock(
 	Control Control,
 	int BlockKey,
 	MarkdownTextSpan PlainTextSpan,
-	string PlainText);
+	string PlainText,
+	int SubIndex = 0,
+	int Row = -1,
+	int Col = -1);
 
 /// <summary>
-/// 选区坐标：只存值——块键（源码起始偏移）与块内纯文本偏移。文本始终按块模型
-/// 取，不依赖控件实例，所以流式重建控件、虚拟化回收之后选区与复制都不受影响。
+/// 选区坐标：只存值——块键（源码起始偏移）+ 块内子块序号（表格按单元格展开时区分列格）
+/// 与块内纯文本偏移。文本始终按块模型取，不依赖控件实例，所以流式重建控件、虚拟化回收
+/// 之后选区与复制都不受影响。
 /// </summary>
-internal readonly record struct MarkdownTextPoint(int BlockKey, int Offset);
+internal readonly record struct MarkdownTextPoint(int BlockKey, int Offset, int SubIndex = 0);
 
 internal sealed class MarkdownSelectionController
 {
@@ -62,17 +66,24 @@ internal sealed class MarkdownSelectionController
 			}
 
 			var (start, end) = GetOrderedPoints();
-			var startIndex = FindIndex(start.BlockKey);
-			var endIndex = FindIndex(end.BlockKey);
+			var startIndex = FindIndex(start);
+			var endIndex = FindIndex(end);
 			if (startIndex < 0 || endIndex < 0 || endIndex < startIndex)
 			{
 				return string.Empty;
 			}
 
+			// 跨块拼接：不同块之间空行分段（网页语义）；同一块内（表格按单元格展开的子块）
+			// 同行单元格用 Tab、换行单元格用换行——对应网页表格复制的行列结构。
 			var parts = new List<string>();
+			var builder = new System.Text.StringBuilder();
+			var hasPending = false;
+			var pendingKey = 0;
+			var pendingRow = -1;
 			for (var i = startIndex; i <= endIndex; i++)
 			{
-				var text = _blocks[i].PlainText;
+				var block = _blocks[i];
+				var text = block.PlainText;
 				if (text.Length == 0)
 				{
 					continue;
@@ -80,13 +91,30 @@ internal sealed class MarkdownSelectionController
 
 				var from = i == startIndex ? Math.Clamp(start.Offset, 0, text.Length) : 0;
 				var to = i == endIndex ? Math.Clamp(end.Offset, 0, text.Length) : text.Length;
-				if (to > from)
+				if (to <= from)
 				{
-					parts.Add(text[from..to]);
+					continue;
 				}
+
+				if (hasPending)
+				{
+					if (block.BlockKey == pendingKey)
+					{
+						builder.Append(block.Row == pendingRow ? '\t' : '\n');
+					}
+					else
+					{
+						builder.Append(Environment.NewLine).Append(Environment.NewLine);
+					}
+				}
+
+				builder.Append(text[from..to]);
+				pendingKey = block.BlockKey;
+				pendingRow = block.Row;
+				hasPending = true;
 			}
 
-			return string.Join(Environment.NewLine + Environment.NewLine, parts);
+			return hasPending ? builder.ToString() : string.Empty;
 		}
 	}
 
@@ -111,8 +139,8 @@ internal sealed class MarkdownSelectionController
 			return;
 		}
 
-		if (_anchor is { } anchor && FindIndex(anchor.BlockKey) < 0
-			|| _active is { } active && FindIndex(active.BlockKey) < 0)
+		if (_anchor is { } anchor && FindIndex(anchor) < 0
+			|| _active is { } active && FindIndex(active) < 0)
 		{
 			_anchor = null;
 			_active = null;
@@ -133,7 +161,7 @@ internal sealed class MarkdownSelectionController
 		}
 
 		var block = _blocks[index];
-		var hit = new MarkdownTextPoint(block.BlockKey, HitTestOffset(block, point));
+		var hit = new MarkdownTextPoint(block.BlockKey, HitTestOffset(block, point), block.SubIndex);
 		if (!extend || _anchor is null) _anchor = hit;
 		_active = hit;
 		if (extend) ApplyVisualState(); else ClearVisualState();
@@ -154,7 +182,7 @@ internal sealed class MarkdownSelectionController
 		}
 
 		var block = _blocks[index];
-		var next = new MarkdownTextPoint(block.BlockKey, HitTestOffset(block, point));
+		var next = new MarkdownTextPoint(block.BlockKey, HitTestOffset(block, point), block.SubIndex);
 		if (_active == next)
 		{
 			return false;
@@ -178,11 +206,11 @@ internal sealed class MarkdownSelectionController
 		_hasVisualSelection = false;
 	}
 
-	private int FindIndex(int blockKey)
+	private int FindIndex(MarkdownTextPoint point)
 	{
 		for (var i = 0; i < _blocks.Count; i++)
 		{
-			if (_blocks[i].BlockKey == blockKey)
+			if (_blocks[i].BlockKey == point.BlockKey && _blocks[i].SubIndex == point.SubIndex)
 			{
 				return i;
 			}
@@ -193,10 +221,26 @@ internal sealed class MarkdownSelectionController
 
 	private int HitTestBlock(Point documentPoint)
 	{
+		// 同一行的表格子块（单元格）Y 区间重叠，须按完整包含区分；先取精确包含，
+		// 再退回按 Y 命中（点击块间空隙/左右边距时沿用旧语义，就近落块）。
 		for (var i = 0; i < _blocks.Count; i++)
 		{
 			// 虚拟化下未物化块已脱离坐标树：TranslatePoint 失败时旧 Bounds 是上一帧的残值，
 			// 拿它命中会把锚点钉到错误块上（表现为点击后冒出莫名选区）。
+			if (!IsBlockHittable(_blocks[i]))
+			{
+				continue;
+			}
+
+			var bounds = GetDocumentBounds(_blocks[i].Control);
+			if (bounds.Contains(documentPoint))
+			{
+				return i;
+			}
+		}
+
+		for (var i = 0; i < _blocks.Count; i++)
+		{
 			if (!IsBlockHittable(_blocks[i]))
 			{
 				continue;
@@ -241,9 +285,19 @@ internal sealed class MarkdownSelectionController
 	private int HitTestOffset(MarkdownSelectionBlock block, Point point)
 	{
 		// 自绘选区视觉接管：命中由段控件自己做 TextLayout 级命中测试。
+		// 传入点先从坐标根转到视觉本地——段布局命中按本地坐标解释，
+		// 直接传文档坐标会把偏移错位一个块起点（此前所有段控件块选区偏移失准的根因）。
 		if (FindSelectionVisual(block.Control) is { } visual)
 		{
-			return visual.HitTestOffset(point);
+			var localPoint = point;
+			if (_coordinateRoot is Visual root
+				&& visual is Visual visualNode
+				&& root.TranslatePoint(point, visualNode) is { } local)
+			{
+				localPoint = local;
+			}
+
+			return visual.HitTestOffset(localPoint);
 		}
 
 		var projected = MarkdownTextProjections.Create(block.Control, block.PlainText).ToArray();
@@ -290,8 +344,8 @@ internal sealed class MarkdownSelectionController
 	{
 		var anchor = _anchor.GetValueOrDefault();
 		var active = _active.GetValueOrDefault();
-		var anchorIndex = FindIndex(anchor.BlockKey);
-		var activeIndex = FindIndex(active.BlockKey);
+		var anchorIndex = FindIndex(anchor);
+		var activeIndex = FindIndex(active);
 		if (anchorIndex > activeIndex
 			|| anchorIndex == activeIndex && anchor.Offset > active.Offset)
 		{
@@ -310,8 +364,8 @@ internal sealed class MarkdownSelectionController
 		}
 
 		var (from, to) = GetOrderedPoints();
-		var start = FindIndex(from.BlockKey);
-		var end = FindIndex(to.BlockKey);
+		var start = FindIndex(from);
+		var end = FindIndex(to);
 		if (start < 0 || end < 0)
 		{
 			return;

@@ -34,7 +34,10 @@ public partial class MarkdownViewer
         if (_selectionController.Begin(documentPoint, extending))
         {
             _pointerSelectionState = new MarkdownPointerSelectionState(e.GetPosition(this));
-            _nativeSelectionTextBlock = FindSelectableTextBlock(e.Source as Visual);
+            // 表格内的可选文本块不交原生选择（跨格拖选由控制器接管，原生单格选择会截断跨格）；
+            // 链接命中检测仍用 FindSelectableTextBlock，不受此排除影响。
+            _nativeSelectionTextBlock = FindSelectableTextBlock(e.Source as Visual) is { } native
+                && native.FindAncestorOfType<MarkdownTableGrid>() is null ? native : null;
             _isPointerSelecting = extending;
             UpdateSelectionState();
             if (extending) { e.Pointer.Capture(this); e.Handled = true; }
@@ -116,13 +119,91 @@ public partial class MarkdownViewer
 
     private void RefreshSelectionBlocks(bool preserveSelection = false)
     {
-        _selectionController.SetBlocks(_renderedBlocks.Select(block =>
-            new MarkdownSelectionBlock(
+        // 表格按单元格展开为子块（同块键 + SubIndex 区分）：跨格拖选命中到具体格，
+        // 复制按行 Tab、跨行换行拼接——网页表格复制语义；其余块保持一表一项。
+        var blocks = new List<MarkdownSelectionBlock>();
+        foreach (var block in _renderedBlocks)
+        {
+            if (block.Kind == MarkdownBlockKind.Table && block.Control is MarkdownTableBlock tableBlock)
+            {
+                var subIndex = 0;
+                foreach (var cell in EnumerateTableCells(tableBlock))
+                {
+                    var text = ExtractCellPlainText(cell);
+                    if (text.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    blocks.Add(new MarkdownSelectionBlock(
+                        cell,
+                        block.Start,
+                        new MarkdownTextSpan(0, text.Length),
+                        text,
+                        subIndex++,
+                        Grid.GetRow(cell),
+                        Grid.GetColumn(cell)));
+                }
+
+                continue;
+            }
+
+            blocks.Add(new MarkdownSelectionBlock(
                 block.Control,
                 block.Start,
                 new MarkdownTextSpan(block.PlainTextStart, block.PlainTextEnd),
-                block.PlainText)), _documentHost, preserveSelection);
+                block.PlainText));
+        }
+
+        _selectionController.SetBlocks(blocks, _documentHost, preserveSelection);
         UpdateSelectionState();
+    }
+
+    /// <summary>表格块内的单元格 Border，按（行,列）文档顺序枚举。</summary>
+    private static IEnumerable<Border> EnumerateTableCells(MarkdownTableBlock tableBlock)
+    {
+        var grid = tableBlock.GetVisualDescendants().OfType<MarkdownTableGrid>().FirstOrDefault();
+        if (grid is null)
+        {
+            yield break;
+        }
+
+        foreach (var cell in grid.Children
+            .OfType<Border>()
+            .OrderBy(Grid.GetRow)
+            .ThenBy(Grid.GetColumn))
+        {
+            yield return cell;
+        }
+    }
+
+    /// <summary>单元格纯文本：段控件与可选文本块按视觉序拼接，块级子内容换行分隔。</summary>
+    private static string ExtractCellPlainText(Border cell)
+    {
+        var pieces = new List<string>();
+        foreach (var descendant in cell.GetVisualDescendants())
+        {
+            if (descendant is MarkdownTextSegmentView segment && segment.PlainText.Length > 0)
+            {
+                pieces.Add(segment.PlainText);
+            }
+            else if (descendant is SelectableTextBlock textBlock)
+            {
+                var text = textBlock.Text;
+                if (string.IsNullOrEmpty(text) && textBlock.Inlines is { } inlines)
+                {
+                    text = string.Join("", inlines.OfType<global::Avalonia.Controls.Documents.Run>()
+                        .Select(run => run.Text ?? ""));
+                }
+
+                if (!string.IsNullOrEmpty(text))
+                {
+                    pieces.Add(text);
+                }
+            }
+        }
+
+        return string.Join("\n", pieces);
     }
 
     private void ResetSelectionState()
