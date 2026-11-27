@@ -45,13 +45,14 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
     private readonly StackPanel _footer;
     private readonly SelectableTextBlock _title;
     private readonly ScrollViewer _scroll;
-    private readonly Button _copyButton;
-    private readonly Button _wrapButton;
-    private readonly Button _downloadButton;
+    private Button? _copyButton;
+    private Button? _wrapButton;
+    private Button? _downloadButton;
     private readonly Button _expandButton;
-    private readonly Path _copyIcon;
-    private readonly Path _wrapIcon;
+    private Path? _copyIcon;
+    private Path? _wrapIcon;
     private Button? _foldButton;
+    private bool _toolbarReady;
 
     private Control _body;
     private MarkdownCodeFenceInfo _fence;
@@ -97,29 +98,9 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
         };
         context.AddMarkdownClass(_toolbar, MarkdownStyleKeys.CodeBlockToolbar);
 
-        _wrapIcon = CreateIcon(MarkdownCodeIcons.Wrap);
-        _wrapButton = CreateToolButton("CodeWrap", MarkdownLocalization.GetResource(MarkdownL.CodeWrapLines));
-        _wrapButton.Content = _wrapIcon;
-        _wrapButton.Click += (_, _) => ToggleWrap();
-
-        _downloadButton = CreateToolButton("CodeDownload", MarkdownLocalization.GetResource(MarkdownL.CodeDownload));
-        _downloadButton.Content = CreateIcon(MarkdownCodeIcons.Download);
-        _downloadButton.Click += async (_, _) =>
-            await _context.SaveCodeBlockAsync(_code, _fence.Language ?? _highlightLanguage, _fence.Path);
-
-        _copyIcon = CreateIcon(MarkdownCodeIcons.Copy);
-        _copyButton = CreateToolButton("CodeCopy", MarkdownLocalization.GetResource(MarkdownL.Copy));
-        _copyButton.Content = _copyIcon;
-        _copyButton.Click += (_, _) =>
-        {
-            _context.CopyCodeToClipboard(_code);
-            ShowCopyFeedback();
-        };
-
-        _toolbar.Children.Add(_downloadButton);
-        _toolbar.Children.Add(_wrapButton);
-        _toolbar.Children.Add(_copyButton);
-        EnsureFoldButton();
+        // 工具条按钮惰性化：阅读态（非悬浮）每个代码块省约 16 个 visual——
+        // 巨文档 127 个代码块累计约 2000 个；悬浮时 EnsureToolbarButtons() 创建。
+        PointerEntered += (_, _) => EnsureToolbarButtons();
         UpdateLocalizedChrome();
 
         var headerGrid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
@@ -170,6 +151,42 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
         Child = root;
         ApplyWrapState();
         context.RaiseCodeBlockToolRender(_header, _content, codeBlock);
+    }
+
+    /// <summary>悬浮时创建工具条按钮与折叠钮（一次性；阅读态保持最小 visual 数）。</summary>
+    private void EnsureToolbarButtons()
+    {
+        if (_toolbarReady)
+        {
+            EnsureFoldButton();
+            return;
+        }
+        _toolbarReady = true;
+
+        _wrapIcon = CreateIcon(MarkdownCodeIcons.Wrap);
+        _wrapButton = CreateToolButton("CodeWrap", MarkdownLocalization.GetResource(MarkdownL.CodeWrapLines));
+        _wrapButton.Content = _wrapIcon;
+        _wrapButton.Click += (_, _) => ToggleWrap();
+
+        _downloadButton = CreateToolButton("CodeDownload", MarkdownLocalization.GetResource(MarkdownL.CodeDownload));
+        _downloadButton.Content = CreateIcon(MarkdownCodeIcons.Download);
+        _downloadButton.Click += async (_, _) =>
+            await _context.SaveCodeBlockAsync(_code, _fence.Language ?? _highlightLanguage, _fence.Path);
+
+        _copyIcon = CreateIcon(MarkdownCodeIcons.Copy);
+        _copyButton = CreateToolButton("CodeCopy", MarkdownLocalization.GetResource(MarkdownL.Copy));
+        _copyButton.Content = _copyIcon;
+        _copyButton.Click += (_, _) =>
+        {
+            _context.CopyCodeToClipboard(_code);
+            ShowCopyFeedback();
+        };
+
+        _toolbar.Children.Add(_downloadButton);
+        _toolbar.Children.Add(_wrapButton);
+        _toolbar.Children.Add(_copyButton);
+        EnsureFoldButton();
+        UpdateLocalizedChrome();
     }
 
     public bool TryUpdateStreaming(CodeBlock codeBlock, IMarkdownRenderContext context)
@@ -359,7 +376,16 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
 
     private void UpdateLocalizedChrome()
     {
+        // 惰性工具条：按钮未创建时无 chrome 可本地化（EnsureToolbarButtons 末尾会再调）。
+        if (!_toolbarReady)
+        {
+            return;
+        }
         // 多代码块场景下读屏器需要可区分的按钮名称："语言 操作"。
+        if (_copyButton is null || _wrapButton is null || _downloadButton is null)
+        {
+            return;
+        }
         AutomationProperties.SetName(_copyButton,
             $"{_titleLanguage} {MarkdownLocalization.GetResource(MarkdownL.Copy)}");
         AutomationProperties.SetName(_wrapButton,
@@ -418,6 +444,7 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
 
     private void ShowCopyFeedback()
     {
+        if (_copyButton is null || _copyIcon is null) return;
         var generation = ++_copyGeneration;
         _copyIcon.Data = MarkdownCodeIcons.Check;
         DispatcherTimer.RunOnce(() =>
