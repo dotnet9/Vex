@@ -9,6 +9,12 @@ draft: false
 
 先另存一份练习稿，尝试源码、即时编辑、阅读、导图与导出。本文同时是阅读布局回归夹具：先检查下列元素矩阵，再从文末“长文压力样本”连续跳滚、缩扩窗口。公式、图表和复杂块的能力以实际引擎及导出结果为准；明确标为“降级”的语法只用于确认不崩溃、不空白，不代表完整视觉支持。
 
+## [TOC] 动态目录导航
+
+使用 '[TOC]' 支持动态目录导航
+
+[TOC]
+
 ## 支持元素与布局验收矩阵
 
 | 类别 | 本文覆盖的语法 | 阅读视图 | 需要重点观察的布局行为 |
@@ -86,8 +92,6 @@ AXAML
 ![离线架构图：C# 文档模型经 ViewModel 与命令映射到 Avalonia 界面](演示文档/图片/dotnet-avalonia-pipeline.svg)
 
 <![字号刻度](演示文档/图片/typography-scale.svg) ![设计色板](演示文档/图片/design-palette-cover.svg)>
-
-[TOC]
 
 [avalonia-doc]: https://docs.avaloniaui.net/ "Avalonia 官方文档"
 
