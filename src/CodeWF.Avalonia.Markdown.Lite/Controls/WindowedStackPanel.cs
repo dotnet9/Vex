@@ -247,12 +247,18 @@ public class WindowedStackPanel : Panel
         AffectsArrange<WindowedStackPanel>(SpacingProperty);
     }
 
-    public void AddItem(Control control, bool pinned = false, bool pinnedByKind = false) =>
-        InsertItem(_entries.Count, control, pinned, pinnedByKind);
+    public void AddItem(Control control, bool pinned = false, bool pinnedByKind = false, double estimatedHeight = 0) =>
+        InsertItem(_entries.Count, control, pinned, pinnedByKind, estimatedHeight);
 
-    public void InsertItem(int index, Control control, bool pinned = false, bool pinnedByKind = false)
+    public void InsertItem(int index, Control control, bool pinned = false, bool pinnedByKind = false, double estimatedHeight = 0)
     {
         var entry = new ItemEntry(control, pinned, pinnedByKind);
+        // 预填估算高度：Measured 保持 false（真实量测后覆盖），但 ResolveSize 优先用
+        // Size —— extent 首帧即接近真实，锚点补偿大幅缩小；无估算时走全局回退。
+        if (estimatedHeight > 0)
+        {
+            entry.Size = estimatedHeight;
+        }
         index = Math.Clamp(index, 0, _entries.Count);
         _entries.Insert(index, entry);
         for (var i = 0; i < _pinnedIndices.Count; i++)
@@ -1148,7 +1154,7 @@ public class WindowedStackPanel : Panel
     private void RefreshEstimateFallback() => _estimateFallbackHeight = MeasuredAverageHeight;
 
     private double ResolveSize(ItemEntry entry) =>
-        entry.Measured ? entry.Size : Math.Max(0, _estimateFallbackHeight);
+        entry.Measured || entry.Size > 0 ? entry.Size : Math.Max(0, _estimateFallbackHeight);
 
     /// <summary>条目在文档空间里实际占的高：自身槽位加上挂在它身上的装饰。</summary>
     private double BandSize(int index) =>

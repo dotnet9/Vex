@@ -1311,7 +1311,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
 
         foreach (var renderedBlock in CreateRenderedBlocks(_renderedModel.Blocks, text))
         {
-            AddBlockControl(renderedBlock.Control);
+            AddBlockControl(renderedBlock.Control, EstimateBlockHeight(renderedBlock.Kind));
             PrefillCachedHeight(renderedBlock);
             _renderedBlocks.Add(renderedBlock);
             ApplyBlockStyleContext(renderedBlock.Control, _renderedBlocks.Count - 1, _renderedModel);
@@ -1322,6 +1322,19 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         ReapplySearchIfActive();
         StoreBlockHeightsToCache();
     }
+
+    /// <summary>按块类型的经验估高（DIP）：虚拟化 extent 首帧即接近真实，
+    /// 未量测条目的锚点补偿大幅缩小。精确值以量测/缓存为准。</summary>
+    private static double EstimateBlockHeight(MarkdownBlockKind kind) => kind switch
+    {
+        MarkdownBlockKind.Code => 240,
+        MarkdownBlockKind.Table => 320,
+        MarkdownBlockKind.Image => 300,
+        MarkdownBlockKind.Quote => 90,
+        MarkdownBlockKind.Heading => 45,
+        MarkdownBlockKind.Math => 120,
+        _ => 70,
+    };
 
     /// <summary>宽度桶：缓存键按宿主宽度分桶，避免不同限宽下的高度互相污染。</summary>
     private int HeightWidthBucket() =>
@@ -1388,7 +1401,7 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         var slice = _renderedModel.Blocks.Skip(_chunkedBuildNextModelIndex).Take(take);
         foreach (var renderedBlock in CreateRenderedBlocks(slice, _renderedMarkdown, _chunkedBuildTotalBlocks))
         {
-            AddBlockControl(renderedBlock.Control);
+            AddBlockControl(renderedBlock.Control, EstimateBlockHeight(renderedBlock.Kind));
             PrefillCachedHeight(renderedBlock);
             _renderedBlocks.Add(renderedBlock);
             ApplyBlockStyleContext(renderedBlock.Control, _renderedBlocks.Count - 1, _renderedModel);
@@ -2572,11 +2585,11 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// <summary>
     /// 追加块控件：宿主为虚拟化面板时按块序号登记，否则退回普通面板行为。
     /// </summary>
-    private void AddBlockControl(Control control)
+    private void AddBlockControl(Control control, double estimatedHeight = 0)
     {
         if (_virtualizingHost is { } host)
         {
-            host.AddItem(control);
+            host.AddItem(control, estimatedHeight: estimatedHeight);
             return;
         }
 
