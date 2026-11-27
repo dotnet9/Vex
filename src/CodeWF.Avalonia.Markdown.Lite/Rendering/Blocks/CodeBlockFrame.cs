@@ -11,6 +11,7 @@ using global::Avalonia.Media;
 using global::Avalonia.Threading;
 using global::Avalonia.VisualTree;
 using CodeWF.Avalonia.Markdown.Controls;
+using CodeWF.Avalonia.Markdown.Helpers;
 using CodeWF.Toolkit.Lang;
 using Markdig.Syntax;
 using Path = global::Avalonia.Controls.Shapes.Path;
@@ -394,10 +395,12 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
             $"{_titleLanguage} {MarkdownLocalization.GetResource(MarkdownL.CodeDownload)}");
         // 工具条是图标钮，操作文案只在 ToolTip 上；语言切换时框架可能按块身份原样复用，
         // 这里统一重写，悬停提示才与读屏名字保持同文化。
-        ToolTip.SetTip(_copyButton, MarkdownLocalization.GetResource(MarkdownL.Copy));
-        ToolTip.SetTip(_wrapButton,
+        // 统一文本提示走 ToolTipHelper（TextBlock + ToolTipForeground 令牌），裸字符串提示
+        // 吃不到宿主主题前景，真机表现为深色底看不清字。
+        ToolTipHelper.SetTip(_copyButton, MarkdownLocalization.GetResource(MarkdownL.Copy));
+        ToolTipHelper.SetTip(_wrapButton,
             MarkdownLocalization.GetResource(_wrap ? MarkdownL.CodeUnwrapLines : MarkdownL.CodeWrapLines));
-        ToolTip.SetTip(_downloadButton, MarkdownLocalization.GetResource(MarkdownL.CodeDownload));
+        ToolTipHelper.SetTip(_downloadButton, MarkdownLocalization.GetResource(MarkdownL.CodeDownload));
     }
 
     private Button CreateToolButton(string tag, string label, bool mutedForeground = true)
@@ -421,7 +424,7 @@ internal sealed class CodeBlockFrame : Border, IStreamingCodeBlock
             _context.BindTheme(button, Button.ForegroundProperty, MarkdownViewer.MutedTextBrushProperty);
         }
 
-        ToolTip.SetTip(button, label);
+        ToolTipHelper.SetTip(button, label);
         AutomationProperties.SetName(button, label);
         return button;
     }
