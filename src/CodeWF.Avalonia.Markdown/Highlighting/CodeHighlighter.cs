@@ -7,6 +7,7 @@ using global::Avalonia.Media.Immutable;
 using global::Avalonia.Media.TextFormatting;
 using global::Avalonia.Utilities;
 using global::Avalonia.VisualTree;
+using System.Diagnostics;
 using CodeWF.Toolkit.Lang;
 using System.Globalization;
 using TextMateSharp.Grammars;
@@ -46,13 +47,23 @@ internal static class CodeHighlighter
 
         // 长代码按行切块：每块独立排版，流式追加只重建尾部块，前面的排版结果不重算。
         // 词法状态经同一会话跨块延续，分块不改变配色。
-        if (grammar is not null && lines is not null && lineCount > MarkdownCodeChunking.ThresholdLines)
+        // 后台分词判定：行数超分块阈值，或字符量超 16KB——中等长度代码块在巨文档里
+        // 动辄几十上百个，同步分词累计秒级（实测 127 块文档首载冻结数秒的真凶）。
+        if (grammar is not null && lines is not null
+            && (lineCount > MarkdownCodeChunking.ThresholdLines || code.Length > 16_000))
         {
-            var chunked = new ChunkedHighlightedCodeBody(
-                normalized, lines, fontFamily, fontSize, lineHeight, isDark,
-                text => GetHighlightedLines(text, language, themeName, grammar, theme, isDark, session),
-                hasGlobalSelection, copyGlobalSelectionAsync);
-            return Wrap(chunked, isDark, lineCount, fontFamily, fontSize, lineHeight);
+            // 后台分词：先出纯文本骨架（零分词成本），分词在后台线程完成后
+            // 原位换装高亮排版——文档加载的首屏不再被视口内代码块的 TextMate 分词阻塞。
+            var asyncBody = new AsyncHighlightedCodeBody(
+                normalized, language, lineCount, isDark, fontFamily, fontSize, lineHeight,
+                session, hasGlobalSelection, copyGlobalSelectionAsync,
+                (tokenLines, normalized, isDark, fontFamily, fontSize, lineHeight, hasSel, copySel) =>
+                {
+                    var highlighted = new HighlightedCodeTextBlock(normalized, (HighlightedLine[]?)tokenLines ?? []);
+                    ConfigureCodeTextBlock(highlighted, fontFamily, fontSize, lineHeight, hasSel, copySel);
+                    return highlighted;
+                });
+            return Wrap(asyncBody, isDark, lineCount, fontFamily, fontSize, lineHeight);
         }
 
         // 长代码以文本样式区间排版，避免为每个 token 建立参与主题匹配的逻辑树节点。
@@ -179,6 +190,13 @@ internal static class CodeHighlighter
         };
     }
 
+    /// <summary>复制菜单公开包装（异步高亮体与主渲染路径共用同一菜单行为）。</summary>
+    public static ContextMenu CreateCopyContextMenuPublic(
+        SelectableTextBlock owner,
+        Func<bool>? hasGlobalSelection,
+        Func<Task>? copySelectionAsync) =>
+        CreateCopyContextMenu(owner, hasGlobalSelection, copySelectionAsync);
+
     private static ContextMenu CreateCopyContextMenu(
         SelectableTextBlock textBlock,
         Func<bool>? hasGlobalSelection,
@@ -299,6 +317,29 @@ internal static class CodeHighlighter
         HighlightCache[key] = highlightedLines;
         HighlightCacheOrder.Enqueue(key);
         return highlightedLines;
+    }
+
+    /// <summary>
+    /// 后台分词入口（AsyncHighlightedCodeBody 专用）：脱离会话全量分词（后台线程无 UI
+    /// 亲和），行级缓存走 HighlightCache 静态表（同 code+language+theme 直接命中）。
+    /// 取消令牌仅在入口检查——分词本身不可中断，粒度由调用方按代码块控制。
+    /// </summary>
+    internal static object TokenizeForBackground(
+        string code,
+        string language,
+        bool isDark,
+        MarkdownCodeHighlightSession? session,
+        CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var themeName = isDark ? ThemeName.DarkPlus : ThemeName.LightPlus;
+        var (grammar, theme) = GetOrCreateGrammar(NormalizeLanguage(language), themeName);
+        if (grammar is null)
+        {
+            return System.Array.Empty<HighlightedLine>();
+        }
+        // 会话缓存的是 UI 线程写入的行级状态；后台路径统一走静态全量缓存，互不污染。
+        return GetOrCreateHighlightedLines(code, NormalizeLanguage(language), themeName, grammar, theme, isDark);
     }
 
     private static HighlightedLine[] Tokenize(string code, IGrammar grammar, Theme theme, bool isDark)
@@ -487,7 +528,7 @@ internal static class CodeHighlighter
             byte.Parse(value.Substring(4, 2), NumberStyles.HexNumber));
     }
 
-    private sealed record HighlightedLine(IReadOnlyList<HighlightedToken> Tokens);
+    public sealed record HighlightedLine(IReadOnlyList<HighlightedToken> Tokens);
 
     private sealed class HighlightedCodeTextBlock : SelectableTextBlock
     {
@@ -637,7 +678,7 @@ internal static class CodeHighlighter
             (lineCount + MarkdownCodeChunking.LinesPerChunk - 1) / MarkdownCodeChunking.LinesPerChunk;
     }
 
-    private sealed record HighlightedToken(
+    public sealed record HighlightedToken(
         string Text,
         IBrush? Foreground,
         IBrush? Background,
@@ -658,4 +699,158 @@ internal static class CodeHighlighter
     }
 
     private readonly record struct HighlightCacheKey(string Code, string Language, ThemeName Theme);
+
+    /// <summary>
+    /// 长代码的后台高亮正文：同步先出纯文本骨架（零分词成本，块立即可见），
+    /// 分词在后台线程完成后原位换装为高亮排版（同一装饰器槽位，控件树引用稳定——
+    /// 选区/折叠/滚动锚点均不受影响）。换装前文本可读可选中（样式与高亮版一致），
+    /// 代价只是没有 token 配色。
+    /// 触发阈值：行数 × 每行预估成本，低于阈值的代码同步直出（同步分词 &lt; 16ms 无感）。
+    /// 取消：装饰器离树即作废后台任务（文档切换/滚动回收不再浪费分词）。
+    /// </summary>
+    public sealed class AsyncHighlightedCodeBody : Decorator, IMarkdownCodeBodyUpdate
+    {
+        private readonly string _normalized;
+        private readonly FontFamily _fontFamily;
+        private readonly double _fontSize;
+        private readonly double _lineHeight;
+        private readonly bool _isDark;
+        private readonly Func<bool>? _hasGlobalSelection;
+        private readonly Func<Task>? _copyGlobalSelectionAsync;
+        private readonly Func<object?, string, bool, FontFamily, double, double, Func<bool>?, Func<Task>?, Control> _highlightedFactory;
+        private readonly string _language;
+        private readonly int _lineCount;
+        private readonly MarkdownCodeHighlightSession? _session;
+
+        private CancellationTokenSource? _highlightCts;
+        private bool _highlightApplied;
+        private SelectableTextBlock? _plainTextBlock;
+
+        /// <summary>同步分词的无感阈值（毫秒）：超过才转后台。按 0.25ms/行经验估。</summary>
+        private const double SyncBudgetMilliseconds = 16;
+        private const double EstimatedMillisecondsPerLine = 0.25;
+
+        public AsyncHighlightedCodeBody(
+            string normalized,
+            string language,
+            int lineCount,
+            bool isDark,
+            FontFamily fontFamily,
+            double fontSize,
+            double lineHeight,
+            MarkdownCodeHighlightSession? session,
+            Func<bool>? hasGlobalSelection,
+            Func<Task>? copyGlobalSelectionAsync,
+            Func<object?, string, bool, FontFamily, double, double, Func<bool>?, Func<Task>?, Control> highlightedFactory)
+        {
+            _highlightedFactory = highlightedFactory;
+            _normalized = normalized;
+            _language = language;
+            _lineCount = lineCount;
+            _isDark = isDark;
+            _fontFamily = fontFamily;
+            _fontSize = fontSize;
+            _lineHeight = lineHeight;
+            _session = session;
+            _hasGlobalSelection = hasGlobalSelection;
+            _copyGlobalSelectionAsync = copyGlobalSelectionAsync;
+
+            // 同步骨架：纯文本，样式与高亮版一致（零分词成本）。
+            _plainTextBlock = new SelectableTextBlock();
+            ConfigureCodeTextBlock(_plainTextBlock);
+            _plainTextBlock.Text = normalized;
+            Child = _plainTextBlock;
+            AttachedToVisualTree += (_, _) => StartHighlight();
+            DetachedFromVisualTree += (_, _) => CancelHighlight();
+        }
+
+        /// <inheritdoc />
+        public bool TryUpdate(string normalizedCode)
+        {
+            // 异步高亮体不处理流式追加：流式场景由会话同步路径接管（AppendOnly 文档代码块少且短）。
+            // 到达此处的唯一场景是宿主整篇重建，此时装饰器会被丢弃重建。
+            return false;
+        }
+
+        private void StartHighlight()
+        {
+            if (_highlightApplied)
+            {
+                return;
+            }
+
+            var estimated = _lineCount * EstimatedMillisecondsPerLine;
+            if (estimated <= SyncBudgetMilliseconds)
+            {
+                ApplyHighlight();
+                return;
+            }
+
+            _highlightCts = new CancellationTokenSource();
+            var token = _highlightCts.Token;
+            var code = _normalized;
+            var language = _language;
+            var isDark = _isDark;
+            var session = _session;
+            var sw = Stopwatch.StartNew();
+            Task.Run(() =>
+            {
+                var lines = CodeHighlighter.TokenizeForBackground(code, language, isDark, session, token);
+                sw.Stop();
+                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (token.IsCancellationRequested || _highlightApplied)
+                    {
+                        return;
+                    }
+                    CodeWF.Toolkit.Logging.Logger.Debug(
+                        $"代码高亮后台分词 行={_lineCount} 耗时={sw.ElapsedMilliseconds}ms");
+                    ApplyHighlight(lines);
+                }, global::Avalonia.Threading.DispatcherPriority.Background);
+            }, token);
+        }
+
+        private void ApplyHighlight(object? tokenLines = null)
+        {
+            if (_highlightApplied)
+            {
+                return;
+            }
+            _highlightApplied = true;
+            _highlightCts?.Cancel();
+            _highlightCts = null;
+
+            // 换装：工厂由 CodeHighlighter 注入（HighlightedCodeTextBlock 是其私有嵌套类），
+            // 本体只管后台分词时序与槽位替换，渲染细节留在高亮器内。
+            var highlighted = _highlightedFactory(
+                tokenLines, _normalized, _isDark, _fontFamily, _fontSize, _lineHeight, _hasGlobalSelection, _copyGlobalSelectionAsync);
+            Child = highlighted;
+            _plainTextBlock = null;
+        }
+
+        private void CancelHighlight()
+        {
+            _highlightCts?.Cancel();
+            _highlightCts = null;
+        }
+
+        private void ConfigureCodeTextBlock(SelectableTextBlock textBlock)
+        {
+            textBlock.TextWrapping = TextWrapping.NoWrap;
+            textBlock.FontFamily = _fontFamily;
+            textBlock.FontSize = _fontSize;
+            textBlock.LineHeight = _lineHeight;
+            textBlock.Bind(SelectableTextBlock.SelectionBrushProperty,
+                textBlock.GetResourceObservable("TextBlockSelectionBackground"));
+            textBlock.Bind(SelectableTextBlock.SelectionForegroundBrushProperty,
+                textBlock.GetResourceObservable("TextBlockSelectionForeground"));
+            textBlock.Classes.Add(MarkdownStyleKeys.CodeBlockText);
+            TextOptions.SetBaselinePixelAlignment(textBlock, BaselinePixelAlignment.Aligned);
+            if (_hasGlobalSelection is not null || _copyGlobalSelectionAsync is not null)
+            {
+                textBlock.ContextMenu = CodeHighlighter.CreateCopyContextMenuPublic(
+                    textBlock, _hasGlobalSelection, _copyGlobalSelectionAsync);
+            }
+        }
+    }
 }

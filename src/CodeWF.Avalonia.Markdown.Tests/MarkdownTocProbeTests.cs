@@ -21,7 +21,7 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 	[Fact]
 	public void Probe_TocAndInlineImage() => platform.Run(() =>
 	{
-		var doc = "[TOC]\n\n# A 标题\n\n## B 标题\n\n行内图片：![演示](demo.svg)。正文。\n";
+		var doc = "[TOC]\n\n# A 标题\n\n## B 标题\n\n链接：[Avalonia](https://x) 与行内图片：![演示](demo.svg)。\n";
 		var viewer = new MarkdownViewer { Markdown = doc };
 		var window = new Window { Width = 600, Height = 400, Content = viewer };
 		window.Show();
@@ -40,6 +40,12 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 				var fg = stb.GetValue(TextBlock.ForegroundProperty) as ISolidColorBrush;
 				var classes = string.Join(",", stb.Classes);
 				dump.AppendLine($"STB fg=#{fg?.Color.ToString() ?? "null"} classes=[{classes}] text=\"{text}\"");
+				foreach (var span in stb.Inlines?.OfType<global::Avalonia.Controls.Documents.Span>() ?? [])
+				{
+					var spanFg = span.GetValue(TextBlock.ForegroundProperty) as ISolidColorBrush;
+					var spanText = string.Join("", span.Inlines.OfType<Run>().Select(r => r.Text ?? ""));
+					dump.AppendLine($"  SPAN fg=#{spanFg?.Color.ToString() ?? "null"} text=\"{spanText}\"");
+				}
 			}
 
 			foreach (var container in viewer.GetVisualDescendants().OfType<InlineUIContainer>())
