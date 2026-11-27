@@ -1,8 +1,10 @@
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 
 using Avalonia;
+using Avalonia.Threading;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
@@ -561,7 +563,12 @@ public class WindowedStackPanel : Panel
         CollectDecorators();
         // 本轮估算基准取上一轮量测的平均值（本轮量测会更新条目，下一轮生效并收敛）。
         RefreshEstimateFallback();
-        var virtualizing = IsVirtualizing;
+        // 快拖骨架：进入骨架模式的第一帧放行重算（大跳落点立即可见），持续拖动期间冻结。
+        var virtualizing = IsVirtualizing && (!_fastDragging || _fastDraggingFirstFrame);
+        if (_fastDragging)
+        {
+            _fastDraggingFirstFrame = false;
+        }
         // Auto 列先按无限宽查询自然尺寸；短文档须把该约束传给图片和文本。
         var width = double.IsFinite(availableSize.Width) || !virtualizing ? availableSize.Width : _lastWidth;
         if (virtualizing && !double.IsFinite(width))
@@ -782,6 +789,18 @@ public class WindowedStackPanel : Panel
     /// 滚动只标记「下一帧需要重新量测」（由 Measure 决定窗口内外的物化变化），
     /// 不做任何同步布局；偏移抖动交给 <see cref="CompensateAnchor"/> 按锚点处理。
     /// </summary>
+    // 快拖骨架模式：拖动大步跳跃会让视口窗口整窗换血，每步几十个重组件（代码高亮/
+    // 图片/表格）同步物化，拖动每一步等几十毫秒——不跟手。快拖期间冻结物化集合
+    // （骨架占位，零建块成本），停顿超过 SkeltonResumeDelay 再一次性重算窗口。
+    private const int SkeletonResumeDelayMs = 150;
+    private long _lastScrollTick;
+    private bool _fastDragging;
+    private bool _fastDraggingFirstFrame;
+    private int _consecutiveJumps;
+    private DispatcherTimer? _fastDragResumeTimer;
+
+    private bool IsFastDragging => _fastDragging;
+
     private void OnScrollHostChanged(object? sender, ScrollChangedEventArgs e)
     {
         if (!IsVirtualizing)
@@ -790,18 +809,78 @@ public class WindowedStackPanel : Panel
         }
 
         // 记住滚动方向：保留未知尺寸子项时优先「将要滚回来」的那一侧。
+        var now = Environment.TickCount64;
         if (sender is ScrollViewer host)
         {
             var offsetY = host.Offset.Y;
             if (double.IsFinite(_lastOffsetY) && Math.Abs(offsetY - _lastOffsetY) > 0.5)
             {
                 _scrollDown = offsetY > _lastOffsetY;
+                // 拖动特征 = 短时间内连续多次大步（拖滑块每帧都大步）；
+                // 程序化一次大跳（大纲跳转/测试赋值）不进骨架，立即重算窗口。
+                var jump = Math.Abs(offsetY - _lastOffsetY) > host.Viewport.Height * 2;
+                if (jump && now - _lastScrollTick < SkeletonResumeDelayMs)
+                {
+                    _consecutiveJumps++;
+                }
+                else if (jump)
+                {
+                    _consecutiveJumps = 1;
+                }
+                else
+                {
+                    _consecutiveJumps = 0;
+                }
+
+                if (jump && _consecutiveJumps >= 2 && !_fastDragging)
+                {
+                    _fastDragging = true;
+                    _fastDraggingFirstFrame = true;
+                    _fastDragResumeTimer ??= CreateFastDragResumeTimer();
+                    _fastDragResumeTimer.Stop();
+                    _fastDragResumeTimer.Start();
+                }
             }
 
             _lastOffsetY = offsetY;
         }
 
+        if (_fastDragging)
+        {
+            var sinceTick = now - _lastScrollTick;
+            if (sinceTick >= SkeletonResumeDelayMs)
+            {
+                // 拖动已停顿：退出骨架模式，本帧重算窗口物化落点区块。
+                _fastDragging = false;
+                _fastDraggingFirstFrame = false;
+                _fastDragResumeTimer?.Stop();
+                _consecutiveJumps = 0;
+                InvalidateMeasure();
+            }
+            else if (!_fastDraggingFirstFrame)
+            {
+                // 骨架期间不触发重建（物化集合冻结），等停顿计时器恢复。
+                _lastScrollTick = now;
+                return;
+            }
+        }
+
+        _lastScrollTick = now;
         InvalidateMeasure();
+    }
+
+    private DispatcherTimer CreateFastDragResumeTimer()
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(SkeletonResumeDelayMs) };
+        timer.Tick += (_, _) =>
+        {
+            if (!_fastDragging) return;
+            _fastDragging = false;
+            _fastDraggingFirstFrame = false;
+            timer.Stop();
+            InvalidateMeasure();
+        };
+        return timer;
     }
 
     private double[] FillSizeBuffer()

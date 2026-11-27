@@ -16,6 +16,7 @@
       "GitBadgeRenamed": "重新命名",
       "GitBadgeDeleted": "已刪除",
       "GitSyncPushLabel": "推送",
+      "LoadingLargeDocument": "正在載入大文件（{0} KB）…",
       "GitSyncPullLabel": "拉取",
       "GitSyncFetchLabel": "獲取",
       "GitSyncPublishLabel": "發布倉庫…",

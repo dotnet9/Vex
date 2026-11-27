@@ -551,12 +551,15 @@ public partial class MarkdownLiveEditorView : UserControl
             var generation = ++_asyncParseGeneration;
             var pending = markdown;
             var pendingBasePath = imageBasePath;
+            AsyncParseStarted?.Invoke(this, new AsyncParseEventArgs(pending.Length));
             System.Threading.Tasks.Task.Run(() =>
             {
                 var models = MarkdownBlockParser.Parse(pending);
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
-                    if (generation != _asyncParseGeneration)
+                    var stale = generation != _asyncParseGeneration;
+                    AsyncParseFinished?.Invoke(this, new AsyncParseEventArgs(pending!.Length, stale));
+                    if (stale)
                     {
                         return;
                     }
@@ -2258,4 +2261,20 @@ public partial class MarkdownLiveEditorView : UserControl
     }
 
     #endregion
+}
+
+/// <summary>巨文档后台解析生命周期参数：Start 时 Length 为文档字符数；Finished 时 Stale 表示结果已过期作废。</summary>
+public sealed class AsyncParseEventArgs(int length, bool stale = false) : EventArgs
+{
+    public int Length { get; } = length;
+    public bool Stale { get; } = stale;
+}
+
+public partial class MarkdownLiveEditorView
+{
+    /// <summary>巨文档后台解析开始（UI 仍显示旧内容/空白；宿主可显示加载指示）。</summary>
+    public event EventHandler<AsyncParseEventArgs>? AsyncParseStarted;
+
+    /// <summary>巨文档后台解析结束（结果已应用或已作废）。</summary>
+    public event EventHandler<AsyncParseEventArgs>? AsyncParseFinished;
 }

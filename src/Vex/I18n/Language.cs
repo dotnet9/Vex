@@ -14,6 +14,7 @@ public static class VexL
     public static readonly string GitBadgeRenamed = "Vex.VexL.GitBadgeRenamed";
     public static readonly string GitBadgeDeleted = "Vex.VexL.GitBadgeDeleted";
     public static readonly string GitSyncPushLabel = "Vex.VexL.GitSyncPushLabel";
+    public static readonly string LoadingLargeDocument = "Vex.VexL.LoadingLargeDocument";
     public static readonly string GitSyncPullLabel = "Vex.VexL.GitSyncPullLabel";
     public static readonly string GitSyncFetchLabel = "Vex.VexL.GitSyncFetchLabel";
     public static readonly string GitSyncPublishLabel = "Vex.VexL.GitSyncPublishLabel";

@@ -16,6 +16,7 @@
       "GitBadgeRenamed": "名前変更",
       "GitBadgeDeleted": "削除済み",
       "GitSyncPushLabel": "プッシュ",
+      "LoadingLargeDocument": "大きな文書を読み込み中（{0} KB）…",
       "GitSyncPullLabel": "プル",
       "GitSyncFetchLabel": "フェッチ",
       "GitSyncPublishLabel": "リポジトリを公開…",

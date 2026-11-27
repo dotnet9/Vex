@@ -16,6 +16,7 @@
       "GitBadgeRenamed": "Renamed",
       "GitBadgeDeleted": "Deleted",
       "GitSyncPushLabel": "Push",
+      "LoadingLargeDocument": "Loading large document ({0} KB)…",
       "GitSyncPullLabel": "Pull",
       "GitSyncFetchLabel": "Fetch",
       "GitSyncPublishLabel": "Publish repository…",

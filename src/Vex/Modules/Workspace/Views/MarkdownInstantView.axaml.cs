@@ -34,6 +34,24 @@ public sealed partial class MarkdownInstantView : UserControl
             if (e.GetPosition(Editor).Y <= Editor.Bounds.Height) return;
             Editor.FocusLastParagraph();
         }, RoutingStrategies.Tunnel);
+        // 巨文档后台解析指示：解析开始显示加载层（挡住旧内容闪变），完成/作废消失。
+        Editor.AsyncParseStarted += (_, e) =>
+        {
+            var text = this.FindControl<TextBlock>("InstantLoadText");
+            if (text is not null)
+            {
+                text.Text = string.Format(
+                    Vex.Core.Models.WorkbenchText.Get("LoadingLargeDocument"),
+                    e.Length / 1024);
+            }
+            var indicator = this.FindControl<Border>("InstantLoadIndicator");
+            if (indicator is not null) indicator.IsVisible = true;
+        };
+        Editor.AsyncParseFinished += (_, _) =>
+        {
+            var indicator = this.FindControl<Border>("InstantLoadIndicator");
+            if (indicator is not null) indicator.IsVisible = false;
+        };
         AttachedToVisualTree += (_, _) => EventBus.Default.Subscribe(this);
         DetachedFromVisualTree += (_, _) => EventBus.Default.Unsubscribe(this);
         SizeChanged += (_, _) => UpdatePadding();

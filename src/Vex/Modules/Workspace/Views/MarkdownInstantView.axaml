@@ -85,6 +85,16 @@
                 </ContextMenu>
             </live:MarkdownLiveEditorView.ContextMenu>
         </live:MarkdownLiveEditorView>
+        <Border x:Name="InstantLoadIndicator" IsVisible="False"
+                Background="{DynamicResource VexPreviewBackgroundBrush}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="True">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+                <ProgressBar IsIndeterminate="True" Width="180" Height="4" />
+                <TextBlock x:Name="InstantLoadText" HorizontalAlignment="Center"
+                           FontSize="{DynamicResource VexDensityFontSizeCaption}"
+                           Foreground="{DynamicResource VexMutedBrush}" />
+            </StackPanel>
+        </Border>
         <TextBlock x:Name="InstantKeyboardHint" Classes="instant-keyboard-hint"
                    Text="{Binding Workbench.InstantHint}"
                    AutomationProperties.Name="{Binding Workbench.InstantHint}" />
