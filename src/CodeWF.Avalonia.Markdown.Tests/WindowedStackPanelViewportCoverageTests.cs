@@ -170,13 +170,13 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
     });
 
     [Fact]
-    public void DefaultViewerKeepsEveryParagraphRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
+    public void ViewerWithoutVirtualizationKeepsEveryParagraphRealizedAcrossLongDocumentJumpAndResize() => platform.Run(() =>
     {
-        // 默认全量布局语义（对齐 StreamMark）：块轻量化后全量量测，extent 永远精确，
-        // 滚动条与内容严格同步；长文档跳转+缩放全程视口全覆盖。
+        // 显式关闭虚拟化的回退语义：全量物化、extent 永远精确，滚动条与内容严格同步；
+        // 长文档跳转+缩放全程视口全覆盖。恒开默认由 MarkdownViewerVirtualizationTests 钉住。
         var blocks = Enumerable.Range(0, 450)
             .Select(index => $"Paragraph {index} is ordinary supported Markdown content.");
-        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks) };
+        var viewer = new MarkdownViewer { Markdown = string.Join("\n\n", blocks), EnableVirtualization = false };
         var presenter = new ScrollContentPresenter { Content = viewer };
         var scroll = new ScrollViewer
         {
@@ -197,7 +197,7 @@ public sealed class WindowedStackPanelViewportCoverageTests(AvaloniaPlatformFixt
             }
 
             var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
-            Assert.False(viewer.EnableVirtualization);
+            Assert.False(viewer.EnableVirtualization); // 本测试显式关闭（默认已恒开）
             Assert.False(panel.IsVirtualizing);
             Assert.Equal(450, panel.ItemCount);
             Assert.Equal(panel.ItemCount, panel.RealizedItemCount);

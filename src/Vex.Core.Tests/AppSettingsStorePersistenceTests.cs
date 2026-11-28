@@ -23,11 +23,10 @@ public sealed class AppSettingsStorePersistenceTests
     }
 
     [Fact]
-    public void MissingFile_FallsBackToDefaults_VirtualizationOff()
+    public void MissingFile_FallsBackToDefaults()
     {
         using var redirect = new Redirected();
         var store = new AppSettingsStore();
-        Assert.False(store.Current.ReadingVirtualization);
         Assert.False(File.Exists(redirect.FilePath), "load must not create the file");
     }
 
@@ -38,7 +37,6 @@ public sealed class AppSettingsStorePersistenceTests
         var store = new AppSettingsStore();
         store.Update(settings => settings with
         {
-            ReadingVirtualization = false,
             SidebarWidth = 271.5,
             ContentZoom = 130,
             BodyFont = "serif",
@@ -46,12 +44,12 @@ public sealed class AppSettingsStorePersistenceTests
 
         Assert.True(File.Exists(redirect.FilePath));
         var payload = File.ReadAllText(redirect.FilePath);
-        Assert.Contains("\"ReadingVirtualization\"", payload);
+        // 已退役的虚拟化偏好键不再写回（旧配置文件中的该键读取时被静默忽略）。
+        Assert.DoesNotContain("\"ReadingVirtualization\"", payload);
         Assert.DoesNotContain("271,5", payload, StringComparison.Ordinal);
 
         // 新实例从用户目录文件恢复（默认路径未动：真实用户配置不受测试影响）。
         var reopened = new AppSettingsStore();
-        Assert.False(reopened.Current.ReadingVirtualization);
         Assert.Equal(271.5, reopened.Current.SidebarWidth);
         Assert.Equal(130, reopened.Current.ContentZoom);
         Assert.Equal("serif", reopened.Current.BodyFont);
@@ -65,7 +63,7 @@ public sealed class AppSettingsStorePersistenceTests
         File.WriteAllText(redirect.FilePath, "{ not valid json !!");
 
         var store = new AppSettingsStore();
-        Assert.False(store.Current.ReadingVirtualization);
+        Assert.NotNull(store.Current);
     }
 
     [Fact]

@@ -139,6 +139,18 @@ if (mode == "scroll-drag")
     window.Close();
     return;
 }
+if (mode == "virtualization-toggle")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
+    window.Show();
+    VirtualizationToggleProbe.Run(window, (MainWindowViewModel)window.DataContext!, output,
+        args.ElementAtOrDefault(2) ?? ScrollDragSamplePath());
+    window.Close();
+    return;
+}
 if (mode == "presentation-geometry")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
@@ -1710,34 +1722,13 @@ void VerifyPresentation(VerificationVexApp app, Vex.Modules.Shell.Views.MainWind
         Check(anchor.BlockIndex == restored.BlockIndex && Math.Abs(anchor.BlockRatio - restored.BlockRatio) < .05,
             "Deep reading anchor survives content/map presentation and return");
         PumpUntil(() => { var gaps = ViewportGaps(preview, readingScroll); return gaps.Unrealized.Length == 0 && gaps.Empty.Length == 0; });
-        // 阅读默认虚拟化已拨回关（默认开与导航/跟随落点精度冲突，见 2.2.2.1 门禁记录）：
-        // 默认轮断言全量物化、视口内无空白——不得滚进未建块的空白区。
-        // 显式开启轮见下方（虚拟化路径仍可用，视口物化同标准）。
+        // 阅读虚拟化恒开（配置项已退役）：长文档保持窗口化物化，且视口内每块都已物化、内容就绪。
         var virtualGaps = ViewportGaps(preview, readingScroll);
-        Check(!preview.EnableVirtualization && preview.RealizedBlockCount >= preview.CurrentModel.Blocks.Count,
-            $"Returning to the long document keeps reading virtualization off by default: {preview.RealizedBlockCount}/{preview.CurrentModel.Blocks.Count}");
+        Check(preview.EnableVirtualization && preview.RealizedBlockCount < preview.CurrentModel.Blocks.Count,
+            $"Returning to the long document keeps reading virtualization windowed: {preview.RealizedBlockCount}/{preview.CurrentModel.Blocks.Count}");
         Check(virtualGaps.Unrealized.Length == 0 && virtualGaps.Empty.Length == 0,
             $"Every block in the reading viewport is realized with content after presentation: unrealized=[{virtualGaps.Unrealized}] empty=[{virtualGaps.Empty}]");
     }
-    // 显式开启虚拟化：回到长文档后保持虚拟化，且视口内每块都已物化、内容就绪。
-    var readingPreferences = app.Resolve<EditorPreferences>();
-    readingPreferences.ReadingVirtualization = true; Pump(); SettleRendering();
-    for (var step = 0; step < 30; step++) { readingScroll.Offset = new Vector(0, readingScroll.Offset.Y + 600); Pump(); }
-    SettleRendering();
-    var virtualAnchor = preview.SaveReadingPosition()!.Value;
-    wb.StartPresentation(); Pump(); SettleRendering();
-    wb.NavigatePresentation(30); Pump(); wb.ShowPresentationMap(); Pump();
-    wb.StopPresentation(); Pump(); SettleRendering();
-    PumpUntil(() => preview.CurrentModel.Source == relapText);
-    var virtualRestored = preview.SaveReadingPosition()!.Value;
-    Check(virtualAnchor.BlockIndex == virtualRestored.BlockIndex && Math.Abs(virtualAnchor.BlockRatio - virtualRestored.BlockRatio) < .05,
-        "Deep reading anchor survives presentation and return with reading virtualization on");
-    Check(preview.EnableVirtualization && preview.RealizedBlockCount < preview.CurrentModel.Blocks.Count,
-        $"Explicitly enabling reading virtualization keeps the window realized: {preview.RealizedBlockCount}/{preview.CurrentModel.Blocks.Count}");
-    var virtualizedGaps = ViewportGaps(preview, readingScroll);
-    Check(virtualizedGaps.Unrealized.Length == 0 && virtualizedGaps.Empty.Length == 0,
-        $"Explicit virtualization still realizes every viewport block: unrealized=[{virtualizedGaps.Unrealized}] empty=[{virtualizedGaps.Empty}]");
-    // 偏好保持默认（关）——上面显式开启轮结束时已恢复。
     static IEnumerable<CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode> Descendants(CodeWF.Avalonia.MindView.Markdown.MarkdownMindMapNode node)
     { yield return node; foreach (var child in node.Children) foreach (var descendant in Descendants(child)) yield return descendant; }
 }

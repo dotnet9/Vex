@@ -85,7 +85,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
     private const string SyntaxHighlight = nameof(AppSettings.SyntaxHighlight);
     private const string SyntaxAutoLinks = nameof(AppSettings.SyntaxAutoLinks);
     private const string SyntaxSoftBreaks = nameof(AppSettings.SyntaxSoftBreaks);
-    private const string ReadingVirtualization = nameof(AppSettings.ReadingVirtualization);
     private const string ImageCopy = nameof(AppSettings.ImageCopy);
     private const string ImageRelative = nameof(AppSettings.ImageRelative);
     private const string ImageFolder = nameof(AppSettings.ImageFolder);
@@ -203,7 +202,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
             SyntaxHighlight = Get<bool?>(configuration, SyntaxHighlight),
             SyntaxAutoLinks = Get<bool?>(configuration, SyntaxAutoLinks),
             SyntaxSoftBreaks = Get<bool?>(configuration, SyntaxSoftBreaks),
-            ReadingVirtualization = Get<bool?>(configuration, ReadingVirtualization) ?? false,
             ImageCopy = Get<bool?>(configuration, ImageCopy),
             ImageRelative = Get<bool?>(configuration, ImageRelative),
             ImageFolder = Get<string>(configuration, ImageFolder) ?? "assets",
@@ -311,7 +309,6 @@ public sealed class AppSettingsStore : IAppSettingsStore
                 [SyntaxHighlight] = settings.SyntaxHighlight,
                 [SyntaxAutoLinks] = settings.SyntaxAutoLinks,
                 [SyntaxSoftBreaks] = settings.SyntaxSoftBreaks,
-                [ReadingVirtualization] = settings.ReadingVirtualization,
                 [ImageCopy] = settings.ImageCopy,
                 [ImageRelative] = settings.ImageRelative,
                 [ImageFolder] = settings.ImageFolder,

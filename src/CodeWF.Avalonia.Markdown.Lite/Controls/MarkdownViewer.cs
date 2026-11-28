@@ -144,12 +144,12 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
         AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableCodeBlockFolding), true);
 
     /// <summary>
-    /// 文档宿主的块虚拟化开关；默认关闭——对齐 StreamMark：块已轻量化（段控件）后
-    /// 全量布局的 extent 永远精确（无估算/无锚点补偿），滚动条与内容严格同步；
-    /// 巨文档切换的流畅由分帧建块保证。虚拟化仅流式输出等明确场景显式开启。
+    /// 文档宿主的块虚拟化开关；默认开启——大文档是本控件的常态场景，整篇物化在
+    /// 巨文档上是「打开/切换卡死」级体验（同步建块数秒且不可中断）。块数低于
+    /// <see cref="VirtualizationThreshold"/> 时自动按普通面板渲染，小文档不付额外开销。
     /// </summary>
     public static readonly StyledProperty<bool> EnableVirtualizationProperty =
-        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), false);
+        AvaloniaProperty.Register<MarkdownViewer, bool>(nameof(EnableVirtualization), true);
 
     /// <summary>
     /// 启用虚拟化的最小块数量；低于该值时按普通面板渲染，避免小文档付出额外开销。

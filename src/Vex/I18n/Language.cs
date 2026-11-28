@@ -969,7 +969,6 @@ public static class VexL
     public static readonly string PrefCodeSize = "Vex.VexL.PrefCodeSize";
     public static readonly string PrefIndent = "Vex.VexL.PrefIndent";
     public static readonly string PrefWrap = "Vex.VexL.PrefWrap";
-    public static readonly string PrefReadingVirtualization = "Vex.VexL.PrefReadingVirtualization";
     public static readonly string PrefOpenDataFolder = "Vex.VexL.PrefOpenDataFolder";
     public static readonly string PrefMath = "Vex.VexL.PrefMath";
     public static readonly string PrefChemistry = "Vex.VexL.PrefChemistry";

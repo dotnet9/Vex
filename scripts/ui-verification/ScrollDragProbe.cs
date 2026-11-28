@@ -55,7 +55,6 @@ internal static class ScrollDragProbe
 
         var preview = window.Workspace.FindControl<MarkdownPreviewView>("PreviewGuideTarget")!;
         var viewer = preview.FindControl<CodeWF.Avalonia.Markdown.Controls.MarkdownViewer>("PreviewMarkdownViewer")!;
-        var previewVm = Vex.App.Services.GetRequiredService<MarkdownPreviewViewModel>();
         var screen = window.Screens.ScreenFromWindow(window) ?? window.Screens.Primary;
         window.Width = screen is null ? 1600 : screen.WorkingArea.Width / screen.Scaling;
         window.Height = screen is null ? 900 : screen.WorkingArea.Height / screen.Scaling;
@@ -69,7 +68,7 @@ internal static class ScrollDragProbe
         var rounds = new List<object>();
         foreach (var virtualized in new[] { true, false })
         {
-            previewVm.Preferences.ReadingVirtualization = virtualized;
+            viewer.EnableVirtualization = virtualized;
             Check(WaitReady(
                 () => viewer.CurrentModel.Source == vm.Markdown
                     && viewer.GetVisualDescendants().OfType<CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel>().SingleOrDefault()
@@ -168,7 +167,6 @@ internal static class ScrollDragProbe
             rounds.Add(new { virtualized, steps, realized, extents });
         }
 
-        previewVm.Preferences.ReadingVirtualization = true;
         File.WriteAllText(Path.Combine(output, "scroll-drag-report.txt"),
             "ScrollDragProbe\n" + string.Join("\n", report) + "\n");
         Console.WriteLine("PASS scroll drag probe complete");

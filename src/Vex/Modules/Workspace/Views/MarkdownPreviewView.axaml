@@ -54,7 +54,6 @@
                 ParagraphFontSize="{Binding BodyFontSize}"
                 CodeBlockFontSize="{Binding CodeBlockFontSize}"
                 CodeBlockWrap="{Binding Preferences.CodeWrap}"
-                EnableVirtualization="{Binding Preferences.ReadingVirtualization}"
                 TypographySize="{Binding TypographySize}"
                 TypographyTheme="{Binding TypographyTheme}"
                 TocForegroundBrush="{DynamicResource VexAccentBrush}"

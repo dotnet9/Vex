@@ -238,9 +238,9 @@ public sealed class ShellPreferencesOverlayView : UserControl
                 Toggle(page, VexL.PrefWrap, p, nameof(p.CodeWrap));
                 Toggle(page, VexL.PrefSourceLineNumbers, _model.Display, nameof(_model.Display.ShowLineNumbers));
                 Toggle(page, VexL.PrefOutlineNumbers, _model.Outline, nameof(_model.Outline.ShowOutlineNumbers));
-                // 阅读视图长文档虚拟化（配置默认开）：超大文档只为视口附近建块，打开/切换秒开；
-                // 关闭则整篇物化（extent 全程精确，代价是长文档打开/切换卡顿数秒）。
-                Toggle(page, VexL.PrefReadingVirtualization, p, nameof(p.ReadingVirtualization));
+                // 阅读视图长文档虚拟化为恒开能力（非偏好项）：超大文档只为视口附近建块，
+                // 小文档（低于面板阈值）自动按普通布局处理。历史版本曾作为可关闭偏好，
+                // 但关闭路径在巨文档上是「整篇同步重建 = 界面挂起」，故移除入口。
                 break;
             case "images":
                 Toggle(page, VexL.PrefImageCopy, p, nameof(p.ImageCopy)); Toggle(page, VexL.PrefImageRelative, p, nameof(p.ImageRelative));
