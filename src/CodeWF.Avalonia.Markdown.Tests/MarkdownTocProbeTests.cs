@@ -115,7 +115,7 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 				+ "after=[" + after + "]" + Environment.NewLine
 				+ "showProp=" + viewer.ShowTocNumbers
 				+ " numbers=[" + numbers + "]";
-			System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\toc-number-probe.txt", report);
+			System.IO.File.WriteAllText(ProbeDumpPath("toc-number-probe.txt"), report);
 		}
 		finally
 		{
@@ -124,4 +124,13 @@ public sealed class MarkdownTocProbeTests(AvaloniaPlatformFixture platform)
 		}
 	});
 
+	/// <summary>诊断转储落仓内 gitignored artifacts——不绑机器私有盘符（旧实现写死 E:\，无该盘的机器必失败）。</summary>
+	private static string ProbeDumpPath(string fileName,
+		[System.Runtime.CompilerServices.CallerFilePath] string testFile = "")
+	{
+		var artifacts = System.IO.Path.GetFullPath(
+			System.IO.Path.Combine(System.IO.Path.GetDirectoryName(testFile)!, "..", "..", "artifacts"));
+		System.IO.Directory.CreateDirectory(artifacts);
+		return System.IO.Path.Combine(artifacts, fileName);
+	}
 }

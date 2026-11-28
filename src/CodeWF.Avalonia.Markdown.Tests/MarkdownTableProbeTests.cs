@@ -136,8 +136,18 @@ public sealed class MarkdownTableProbeTests(AvaloniaPlatformFixture platform)
             }
         }
 
-        System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\gridtable-parse-probe.txt", dump.ToString());
+        System.IO.File.WriteAllText(ProbeDumpPath("gridtable-parse-probe.txt"), dump.ToString());
     });
+
+    /// <summary>诊断转储落仓内 gitignored artifacts——不绑机器私有盘符（旧实现写死 E:\，无该盘的机器必失败）。</summary>
+    private static string ProbeDumpPath(string fileName,
+        [System.Runtime.CompilerServices.CallerFilePath] string testFile = "")
+    {
+        var artifacts = System.IO.Path.GetFullPath(
+            System.IO.Path.Combine(System.IO.Path.GetDirectoryName(testFile)!, "..", "..", "artifacts"));
+        System.IO.Directory.CreateDirectory(artifacts);
+        return System.IO.Path.Combine(artifacts, fileName);
+    }
 
     [Fact]
     public void SegmentParagraph_SelectionOffsets_ArePrecise() => platform.Run(() =>

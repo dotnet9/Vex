@@ -931,6 +931,11 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             panel.ScrollHost ??= ResolveScrollHost();
             // 只有重块参与离屏保留：轻量段落照常解体，内存占用最小。
             panel.KeepAliveCandidateResolver = IsHeavyBlockAt;
+            // 预算必须一并接线：预算为 0 时重块离屏即解体，Mermaid/图片滚回就重放
+            // 「占位→异步到位」的高度生长（extent 摆动 + 高度振荡的直接来源）。
+            panel.KeepAliveBudget = HeavyBlockKeepAliveBudget;
+            panel.KeepAliveUnknownCount = HeavyBlockKeepAliveUnknownCount;
+            panel.EstimateHeightResolver = EstimateBlockHeightAt;
             SubscribeViewerScrollHost();
         }
 
@@ -1077,8 +1082,9 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     {
         // 滚动仪表（节流 600ms）：offset/extent/viewport/已物化/估算基准——
         // 用于定位「滚动条不随内容滚动」的脱节机理（extent 失真/锚点补偿）。
+        // 先看有没有订阅者再构建字符串：诊断断流期间零成本。
         var now = Environment.TickCount64;
-        if (now - _lastScrollDiagnosticsTick > 600)
+        if (ScrollDiagnostics is not null && now - _lastScrollDiagnosticsTick > 600)
         {
             _lastScrollDiagnosticsTick = now;
             var scrollHost = _virtualizingHost?.ScrollHost;
@@ -1112,7 +1118,9 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
             }
         }
 
-        if (_virtualizingHost is not { } host || _renderedBlocks.Count == 0)
+        // 锚点固定只属于虚拟化宿主：全量物化下 Pin/Unpin 只会平白触发整篇重量测
+        // （巨文档拖动每步一次全量布局，正是默认模式的卡顿来源之一）。
+        if (_virtualizingHost is not { } host || _renderedBlocks.Count == 0 || !host.IsVirtualizing)
         {
             return;
         }
@@ -1140,6 +1148,43 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     /// <summary>块序号是否为重块（保留候选），供面板决定离屏后是否保留控件。</summary>
     private bool IsHeavyBlockAt(int index) =>
         index >= 0 && index < _renderedBlocks.Count && _renderedBlocks[index].IsHeavy;
+
+    /// <summary>
+    /// 按块类型的未量测估高（借鉴 StreamMark 的按类型 Estimate）：虚拟化 extent 的
+    /// 首帧精度直接决定滚动条比例与锚点补偿次数，全局平均估高在块型混杂的巨文档上
+    /// 偏差一半以上。代码/表格能从语法块拿到行数就用真值；无意见返回 NaN 回落平均值。
+    /// </summary>
+    private double EstimateBlockHeightAt(int index)
+    {
+        if (index < 0 || index >= _renderedModel.Blocks.Count)
+        {
+            return double.NaN;
+        }
+
+        var block = _renderedModel.Blocks[index];
+        var sourceLength = Math.Max(0, block.SourceSpan.End - block.SourceSpan.Start);
+        return block.Kind switch
+        {
+            MarkdownBlockKind.Heading => block.SyntaxBlock is Markdig.Syntax.HeadingBlock heading
+                ? 24 + (34 - Math.Clamp(heading.Level, 1, 6) * 4) + ParagraphLineHeight * .6
+                : 24 + 22 + ParagraphLineHeight * .6,
+            MarkdownBlockKind.Code => block.SyntaxBlock is Markdig.Syntax.FencedCodeBlock fenced && fenced.Lines.Count > 0
+                ? fenced.Lines.Count * (CodeBlockFontSize * 1.6) + 64
+                : Math.Max(1, sourceLength / 50) * (CodeBlockFontSize * 1.6) + 64,
+            MarkdownBlockKind.Table => block.SyntaxBlock is Markdig.Extensions.Tables.Table table && table.Count > 0
+                ? table.Count * 40 + 30
+                : Math.Max(1, sourceLength / 80) * 40 + 30,
+            MarkdownBlockKind.Image => 300,
+            MarkdownBlockKind.Math => 140,
+            MarkdownBlockKind.Toc => 200,
+            MarkdownBlockKind.Slide => 420,
+            MarkdownBlockKind.Quote or MarkdownBlockKind.List or MarkdownBlockKind.Footnote =>
+                Math.Max(1, sourceLength / 60) * ParagraphLineHeight * .7 + 20,
+            MarkdownBlockKind.ThematicBreak => 24,
+            MarkdownBlockKind.LinkReference => 0,
+            _ => Math.Max(1, sourceLength / 60) * ParagraphLineHeight * .8 + 16,
+        };
+    }
 
     private void QueueRenderDocument(MarkdownRenderMode mode)
     {
@@ -1277,12 +1322,13 @@ public partial class MarkdownViewer : TemplatedControl, Rendering.IMarkdownRende
     private int HeightWidthBucket() =>
         (int)Math.Clamp((_documentHost?.Bounds.Width ?? 900) / 240, 0, 20);
 
-    /// <summary>块指纹命中高度缓存时预填条目高度（切回已读文档 extent 首帧即准确）。</summary>
+    /// <summary>块指纹命中高度缓存时预填条目高度（切回已读文档 extent 首帧即准确）。
+    /// 调用点先挂面板后登记 _renderedBlocks，条目下标即当前块数。</summary>
     private void PrefillCachedHeight(RenderedBlock renderedBlock)
     {
         if (_virtualizingHost is { } host)
         {
-            host.TryPrefillItemHeight(renderedBlock.Control, renderedBlock.ContentHash, HeightWidthBucket());
+            host.TryPrefillItemHeightAt(_renderedBlocks.Count, renderedBlock.ContentHash, HeightWidthBucket());
         }
     }
 

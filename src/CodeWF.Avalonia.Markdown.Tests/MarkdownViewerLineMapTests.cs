@@ -57,7 +57,7 @@ public sealed class MarkdownViewerLineMapTests(AvaloniaPlatformFixture platform)
             var mid = viewer.TryGetSourceLineBounds(11 * 18 - 17, out var midBounds);
             var total = viewer.TryGetSourceLineBounds(50 * 18 - 17, out var endBounds);
             var report = $"monotonic={monotonic} ch11={midBounds.Top:0} ch50={endBounds.Top:0} viewerH={viewer.Bounds.Height:0}\n{dump}";
-            System.IO.File.WriteAllText(@"E:\github\temp_files\vex-build\line-map-probe.txt", report);
+            System.IO.File.WriteAllText(ProbeDumpPath("line-map-probe.txt"), report);
             Assert.True(monotonic, $"行→块映射应单调递增：\n{report}");
             if (mid && total)
             {
@@ -71,4 +71,14 @@ public sealed class MarkdownViewerLineMapTests(AvaloniaPlatformFixture platform)
             Dispatcher.UIThread.RunJobs();
         }
     });
+
+    /// <summary>诊断转储落仓内 gitignored artifacts——不绑机器私有盘符（旧实现写死 E:\，无该盘的机器必失败）。</summary>
+    private static string ProbeDumpPath(string fileName,
+        [System.Runtime.CompilerServices.CallerFilePath] string testFile = "")
+    {
+        var artifacts = System.IO.Path.GetFullPath(
+            System.IO.Path.Combine(System.IO.Path.GetDirectoryName(testFile)!, "..", "..", "artifacts"));
+        System.IO.Directory.CreateDirectory(artifacts);
+        return System.IO.Path.Combine(artifacts, fileName);
+    }
 }

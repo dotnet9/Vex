@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Avalonia;
-using Avalonia.Threading;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
@@ -158,6 +157,13 @@ public class WindowedStackPanel : Panel
     /// 让轻量段落照常解体。
     /// </summary>
     public Func<int, bool>? KeepAliveCandidateResolver { get; set; }
+
+    /// <summary>
+    /// 未量测子项的按类型估高委托（下标 → 估算高度）。返回非正/非有限值表示无意见，
+    /// 回落 <see cref="_estimateFallbackHeight"/> 平均值。虚拟化 extent 的首帧精度
+    /// 直接决定滚动条比例与锚点补偿次数；块型混杂的文档上全局平均偏差一半以上。
+    /// </summary>
+    public Func<int, double>? EstimateHeightResolver { get; set; }
 
     public bool EnableVirtualization
     {
@@ -563,12 +569,7 @@ public class WindowedStackPanel : Panel
         CollectDecorators();
         // 本轮估算基准取上一轮量测的平均值（本轮量测会更新条目，下一轮生效并收敛）。
         RefreshEstimateFallback();
-        // 快拖骨架：进入骨架模式的第一帧放行重算（大跳落点立即可见），持续拖动期间冻结。
-        var virtualizing = IsVirtualizing && (!_fastDragging || _fastDraggingFirstFrame);
-        if (_fastDragging)
-        {
-            _fastDraggingFirstFrame = false;
-        }
+        var virtualizing = IsVirtualizing;
         // Auto 列先按无限宽查询自然尺寸；短文档须把该约束传给图片和文本。
         var width = double.IsFinite(availableSize.Width) || !virtualizing ? availableSize.Width : _lastWidth;
         if (virtualizing && !double.IsFinite(width))
@@ -643,7 +644,7 @@ public class WindowedStackPanel : Panel
                 }
 
                 maxWidth = Math.Max(maxWidth, MeasureDecorators(i, width));
-                y += ResolveSize(entry) + _decoratorHeights[i] + Spacing;
+                y += ResolveSize(i, entry) + _decoratorHeights[i] + Spacing;
             }
 
             if (_entries.Count > 0)
@@ -697,7 +698,7 @@ public class WindowedStackPanel : Panel
         double y = 0;
         for (var i = 0; i < _entries.Count; i++)
         {
-            var band = ResolveSize(_entries[i]) + _decoratorHeights[i];
+            var band = ResolveSize(i, _entries[i]) + _decoratorHeights[i];
             if (!_entries[i].Realized && y + band >= windowTop && y <= windowBottom)
             {
                 missed.Add(i);
@@ -727,7 +728,7 @@ public class WindowedStackPanel : Panel
             }
 
             ArrangeDecorators(i, cursor, finalSize.Width, false);
-            y += ResolveSize(entry) + _decoratorHeights[i] + Spacing;
+            y += ResolveSize(i, entry) + _decoratorHeights[i] + Spacing;
         }
 
         return finalSize;
@@ -788,19 +789,10 @@ public class WindowedStackPanel : Panel
     /// <summary>
     /// 滚动只标记「下一帧需要重新量测」（由 Measure 决定窗口内外的物化变化），
     /// 不做任何同步布局；偏移抖动交给 <see cref="CompensateAnchor"/> 按锚点处理。
+    /// 快拖不做任何冻结/降级：物化窗口每帧如实跟随滚动，跳进未量测区靠估高 +
+    /// 高度缓存保持 extent 稳定（快拖骨架模式曾把冻结期的虚拟化判定算成 false、
+    /// 窗口判定退化为全文档，一次外部触发的量测就同步物化整篇——巨文档直接卡死）。
     /// </summary>
-    // 快拖骨架模式：拖动大步跳跃会让视口窗口整窗换血，每步几十个重组件（代码高亮/
-    // 图片/表格）同步物化，拖动每一步等几十毫秒——不跟手。快拖期间冻结物化集合
-    // （骨架占位，零建块成本），停顿超过 SkeltonResumeDelay 再一次性重算窗口。
-    private const int SkeletonResumeDelayMs = 150;
-    private long _lastScrollTick;
-    private bool _fastDragging;
-    private bool _fastDraggingFirstFrame;
-    private int _consecutiveJumps;
-    private DispatcherTimer? _fastDragResumeTimer;
-
-    private bool IsFastDragging => _fastDragging;
-
     private void OnScrollHostChanged(object? sender, ScrollChangedEventArgs e)
     {
         if (!IsVirtualizing)
@@ -809,78 +801,18 @@ public class WindowedStackPanel : Panel
         }
 
         // 记住滚动方向：保留未知尺寸子项时优先「将要滚回来」的那一侧。
-        var now = Environment.TickCount64;
         if (sender is ScrollViewer host)
         {
             var offsetY = host.Offset.Y;
             if (double.IsFinite(_lastOffsetY) && Math.Abs(offsetY - _lastOffsetY) > 0.5)
             {
                 _scrollDown = offsetY > _lastOffsetY;
-                // 拖动特征 = 短时间内连续多次大步（拖滑块每帧都大步）；
-                // 程序化一次大跳（大纲跳转/测试赋值）不进骨架，立即重算窗口。
-                var jump = Math.Abs(offsetY - _lastOffsetY) > host.Viewport.Height * 2;
-                if (jump && now - _lastScrollTick < SkeletonResumeDelayMs)
-                {
-                    _consecutiveJumps++;
-                }
-                else if (jump)
-                {
-                    _consecutiveJumps = 1;
-                }
-                else
-                {
-                    _consecutiveJumps = 0;
-                }
-
-                if (jump && _consecutiveJumps >= 2 && !_fastDragging)
-                {
-                    _fastDragging = true;
-                    _fastDraggingFirstFrame = true;
-                    _fastDragResumeTimer ??= CreateFastDragResumeTimer();
-                    _fastDragResumeTimer.Stop();
-                    _fastDragResumeTimer.Start();
-                }
             }
 
             _lastOffsetY = offsetY;
         }
 
-        if (_fastDragging)
-        {
-            var sinceTick = now - _lastScrollTick;
-            if (sinceTick >= SkeletonResumeDelayMs)
-            {
-                // 拖动已停顿：退出骨架模式，本帧重算窗口物化落点区块。
-                _fastDragging = false;
-                _fastDraggingFirstFrame = false;
-                _fastDragResumeTimer?.Stop();
-                _consecutiveJumps = 0;
-                InvalidateMeasure();
-            }
-            else if (!_fastDraggingFirstFrame)
-            {
-                // 骨架期间不触发重建（物化集合冻结），等停顿计时器恢复。
-                _lastScrollTick = now;
-                return;
-            }
-        }
-
-        _lastScrollTick = now;
         InvalidateMeasure();
-    }
-
-    private DispatcherTimer CreateFastDragResumeTimer()
-    {
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(SkeletonResumeDelayMs) };
-        timer.Tick += (_, _) =>
-        {
-            if (!_fastDragging) return;
-            _fastDragging = false;
-            _fastDraggingFirstFrame = false;
-            timer.Stop();
-            InvalidateMeasure();
-        };
-        return timer;
     }
 
     private double[] FillSizeBuffer()
@@ -1114,11 +1046,17 @@ public class WindowedStackPanel : Panel
         }
     }
 
-    /// <summary>按控件引用找到条目并预填缓存高度（未量测才填，量测值永远优先）。</summary>
-    public bool TryPrefillItemHeight(Control control, ulong hash, int widthBucket)
+    /// <summary>按条目下标预填缓存高度（未量测才填，量测值永远优先）。宿主侧块序号与条目
+    /// 一一对应，取代旧的按控件引用线性查找——建篇逐块预填 O(n²) 是巨文档打开顿挫的一环。</summary>
+    public bool TryPrefillItemHeightAt(int index, ulong hash, int widthBucket)
     {
-        var entry = _entries.FirstOrDefault(candidate => ReferenceEquals(candidate.Control, control));
-        if (entry is null || entry.Measured)
+        if (index < 0 || index >= _entries.Count)
+        {
+            return false;
+        }
+
+        var entry = _entries[index];
+        if (entry.Measured)
         {
             return false;
         }
@@ -1140,12 +1078,24 @@ public class WindowedStackPanel : Panel
 
     private void RefreshEstimateFallback() => _estimateFallbackHeight = MeasuredAverageHeight;
 
-    private double ResolveSize(ItemEntry entry) =>
-        entry.Measured ? entry.Size : Math.Max(0, _estimateFallbackHeight);
+    private double ResolveSize(int index, ItemEntry entry) =>
+        entry.Measured ? entry.Size : ResolveEstimate(index);
+
+    /// <summary>未量测子项的估高：按类型委托优先（宿主了解块型），否则全局平均值。</summary>
+    private double ResolveEstimate(int index)
+    {
+        if (EstimateHeightResolver?.Invoke(index) is { } estimate
+            && double.IsFinite(estimate) && estimate > 0)
+        {
+            return estimate;
+        }
+
+        return Math.Max(0, _estimateFallbackHeight);
+    }
 
     /// <summary>条目在文档空间里实际占的高：自身槽位加上挂在它身上的装饰。</summary>
     private double BandSize(int index) =>
-        ResolveSize(_entries[index]) + DecoratorHeight(index);
+        ResolveSize(index, _entries[index]) + DecoratorHeight(index);
 
     private double DecoratorHeight(int band) =>
         band >= 0 && band < _decoratorHeights.Length ? _decoratorHeights[band] : 0d;

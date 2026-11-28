@@ -11,10 +11,10 @@ using Xunit;
 namespace CodeWF.Avalonia.Markdown.Tests;
 
 /// <summary>
-/// 阅读视图虚拟化（EnableVirtualization=true，应用配置 ReadingVirtualization 默认开）的
-/// 功能不变量：远端重块（表格/代码/图表）延迟创建、只物化视口附近条目，且与视口相交的
-/// 每一块都已物化、内容就绪——滚动不得露出未建块的空白。配置开关关闭（全量布局）的行为
-/// 由 WindowedStackPanelViewportCoverageTests 钉住。
+/// 阅读视图虚拟化（EnableVirtualization=true；应用偏好 ReadingVirtualization 当前默认关，
+/// 大文档按需开启）的功能不变量：远端重块（表格/代码/图表）延迟创建、只物化视口附近
+/// 条目，且与视口相交的每一块都已物化、内容就绪——滚动不得露出未建块的空白。
+/// 配置开关关闭（全量布局）的行为由 WindowedStackPanelViewportCoverageTests 钉住。
 /// </summary>
 [Collection("AvaloniaPlatform")]
 public sealed class MarkdownViewerVirtualizationTests(AvaloniaPlatformFixture platform)
@@ -81,6 +81,48 @@ public sealed class MarkdownViewerVirtualizationTests(AvaloniaPlatformFixture pl
             AssertGaps(viewer, scroll, window, "returned-to-top viewport");
             Assert.True(panel.RealizedItemCount < panel.ItemCount,
                 $"returning to top releases distant blocks again: {panel.RealizedItemCount}/{panel.ItemCount}");
+        }
+        finally
+        {
+            window.Close();
+            Dispatcher.UIThread.RunJobs();
+        }
+    });
+
+    [Fact]
+    public void RapidLargeJumpsKeepRealizedSetWindowedAndCovered() => platform.Run(() =>
+    {
+        // 快拖骨架残骸回归钉：残骸曾把冻结期的虚拟化判定算成 false，窗口判定退化为
+        // 全文档——任何一次外部触发的量测（锚点 Pin/Unpin 等）就会同步物化整篇巨文档，
+        // 表现为拖动滚动条快拖直接卡死。连续大步（远超 2 视口高）往返后，物化集合必须
+        // 始终保持窗口化，且落点视口全覆盖。
+        var viewer = new MarkdownViewer { EnableVirtualization = true, Markdown = Document };
+        var presenter = new ScrollContentPresenter { Content = viewer };
+        var scroll = new ScrollViewer
+        {
+            Template = new FuncControlTemplate<ScrollViewer>((_, scope) =>
+            {
+                scope.Register("PART_ScrollContentPresenter", presenter);
+                return presenter;
+            })
+        };
+        var window = new Window { Width = 640, Height = 360, Content = scroll };
+        window.Show();
+        try
+        {
+            Pump(24, window);
+            var panel = viewer.GetVisualDescendants().OfType<WindowedStackPanel>().Single();
+            var maximum = Math.Max(0, scroll.Extent.Height - scroll.Viewport.Height);
+            foreach (var offset in new[] { maximum * .9, maximum * .2, maximum * .8, 0d, maximum, maximum * .5, 0d })
+            {
+                scroll.Offset = new Vector(0, offset);
+                Pump(6, window);
+                Assert.True(panel.IsVirtualizing, "rapid large jumps must not disable virtualization");
+                Assert.True(panel.RealizedItemCount < panel.ItemCount,
+                    $"large jumps keep the realized set windowed: {panel.RealizedItemCount}/{panel.ItemCount} at {offset:0}");
+            }
+
+            AssertGaps(viewer, scroll, window, "after rapid large jumps");
         }
         finally
         {

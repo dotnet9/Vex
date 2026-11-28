@@ -438,6 +438,11 @@ public partial class MarkdownViewer
     /// 命中测试：<see cref="MarkdownViewer"/> 坐标系中的点落在哪个已渲染块内。
     /// 宿主据此实现「指针位置 → 源码行」类交互（如右键元素菜单），无需钻可视树；
     /// 未物化块（虚拟化离屏）与空白区域返回 false。
+    /// <para>
+    /// 虚拟化宿主走面板布局索引二分定位候选块，只对邻域做精确 Bounds 校验——
+    /// 千块巨文档上这个采样在滚动中反复执行，全块线性 + 逐块 TranslatePoint
+    /// 是拖动卡顿的热点之一；无虚拟化宿主时回退线性扫描。
+    /// </para>
     /// </summary>
     public bool TryGetBlockAt(Point point, out MarkdownBlockHit hit)
     {
@@ -447,45 +452,95 @@ public partial class MarkdownViewer
             return false;
         }
 
+        if (_virtualizingHost is { } panel && this.TranslatePoint(point, panel) is { } panelPoint)
+        {
+            var center = panel.FindItemAtOffset(Math.Max(0, panelPoint.Y));
+            var first = Math.Max(0, center - 3);
+            var last = Math.Min(_renderedBlocks.Count - 1, center + 3);
+            for (var i = first; i <= last; i++)
+            {
+                if (HitIsRenderedBlock(i, point, ref hit))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         for (var i = 0; i < _renderedBlocks.Count; i++)
         {
-            var rendered = _renderedBlocks[i];
-            if (rendered.Control.TranslatePoint(new Point(0, 0), this) is not { } origin)
+            if (HitIsRenderedBlock(i, point, ref hit))
             {
-                continue;
+                return true;
             }
-
-            if (!new Rect(origin, rendered.Control.Bounds.Size).Contains(point))
-            {
-                continue;
-            }
-
-            var modelBlock = i < _renderedModel.Blocks.Count ? _renderedModel.Blocks[i] : null;
-            hit = new MarkdownBlockHit(
-                i,
-                modelBlock?.Kind ?? rendered.Kind,
-                rendered.Start,
-                GetSourceLineOfOffset(Markdown ?? string.Empty, rendered.Start));
-            return true;
         }
 
         return false;
     }
 
-    /// <summary>源码偏移 → 1 起始行号。</summary>
-    private static int GetSourceLineOfOffset(string text, int offset)
+    private bool HitIsRenderedBlock(int index, Point point, ref MarkdownBlockHit hit)
     {
-        var line = 1;
-        var limit = Math.Clamp(offset, 0, text.Length);
-        for (var i = 0; i < limit; i++)
+        if (index < 0 || index >= _renderedBlocks.Count)
         {
-            if (text[i] == '\n')
+            return false;
+        }
+
+        var rendered = _renderedBlocks[index];
+        if (rendered.Control.TranslatePoint(new Point(0, 0), this) is not { } origin
+            || !new Rect(origin, rendered.Control.Bounds.Size).Contains(point))
+        {
+            return false;
+        }
+
+        var modelBlock = index < _renderedModel.Blocks.Count ? _renderedModel.Blocks[index] : null;
+        hit = new MarkdownBlockHit(
+            index,
+            modelBlock?.Kind ?? rendered.Kind,
+            rendered.Start,
+            GetSourceLineOfOffset(Markdown ?? string.Empty, rendered.Start));
+        return true;
+    }
+
+    /// <summary>源码偏移 → 1 起始行号（按行起点索引二分；索引按文本引用缓存，换文档即失效）。</summary>
+    private string? _lineStartText;
+    private int[]? _lineStartIndex;
+
+    private int GetSourceLineOfOffset(string text, int offset)
+    {
+        if (!ReferenceEquals(_lineStartText, text))
+        {
+            _lineStartText = text;
+            var starts = new List<int>(1 + text.Length / 40) { 0 };
+            for (var i = 0; i < text.Length; i++)
             {
-                line++;
+                if (text[i] == '\n')
+                {
+                    starts.Add(i + 1);
+                }
+            }
+
+            _lineStartIndex = starts.ToArray();
+        }
+
+        var lineStarts = _lineStartIndex!;
+        var limit = Math.Clamp(offset, 0, text.Length);
+        var low = 0;
+        var high = lineStarts.Length - 1;
+        while (low < high)
+        {
+            var mid = (low + high + 1) / 2;
+            if (lineStarts[mid] <= limit)
+            {
+                low = mid;
+            }
+            else
+            {
+                high = mid - 1;
             }
         }
 
-        return line;
+        return low + 1;
     }
 
     private ScrollViewer? ResolveScrollHost()

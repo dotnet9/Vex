@@ -41,7 +41,7 @@ public sealed class EditorPreferences(IAppSettingsStore settings) : ReactiveObje
     public bool SyntaxHighlight { get => settings.Current.SyntaxHighlight ?? true; set => Set(s => s with { SyntaxHighlight = value }); }
     public bool SyntaxAutoLinks { get => settings.Current.SyntaxAutoLinks ?? true; set => Set(s => s with { SyntaxAutoLinks = value }); }
     public bool SyntaxSoftBreaks { get => settings.Current.SyntaxSoftBreaks ?? true; set => Set(s => s with { SyntaxSoftBreaks = value }); }
-    /// <summary>阅读视图长文档虚拟化（默认开）：关闭后整篇全量建块，长文档打开与切换会卡顿数秒。</summary>
+    /// <summary>阅读视图长文档虚拟化（当前默认关）：关闭后整篇全量建块，长文档打开与切换会卡顿数秒。</summary>
     public bool ReadingVirtualization { get => settings.Current.ReadingVirtualization; set => Set(s => s with { ReadingVirtualization = value }); }
     public bool ImageCopy { get => settings.Current.ImageCopy ?? true; set => Set(s => s with { ImageCopy = value }); }
     public bool ImageRelative { get => settings.Current.ImageRelative ?? true; set => Set(s => s with { ImageRelative = value }); }

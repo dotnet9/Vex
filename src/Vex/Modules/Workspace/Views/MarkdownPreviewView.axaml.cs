@@ -52,6 +52,8 @@ public partial class MarkdownPreviewView : UserControl
     private TopLevel? _displayHost;
     private IDisposable? _outlineNavigation;
     private IDisposable? _readingSample;
+    /// <summary>用户正按住滚动条拖动：期间不武装阅读采样器（松手统一补尾采样）。</summary>
+    private bool _userScrolling;
     private void ApplyDocumentGeometry()
     {
         var presenting = _viewModel?.IsPresenting == true;
@@ -111,6 +113,12 @@ public partial class MarkdownPreviewView : UserControl
         // 持续改写偏移数秒——表现正是「滚动后点击视图漂移、光标下文字换了位导致误选」。
         PreviewScrollViewer.AddHandler(PointerWheelChangedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
         PreviewScrollViewer.AddHandler(PointerPressedEvent, OnUserTakesOverScroll, RoutingStrategies.Tunnel);
+        // 拖动滚动条期间暂停阅读采样：Thumb 拖动全程 ScrollChanged 高频触发，采样器
+        // 会随每次触发在拖动中途复活（命中测试 O(块数)×探针 + 全文行号扫描），与拖动
+        // 布局抢主线程。按下立牌、松开/失捕时补一次尾采样。
+        PreviewScrollViewer.AddHandler(PointerPressedEvent, (_, _) => _userScrolling = true, RoutingStrategies.Tunnel);
+        PreviewScrollViewer.AddHandler(PointerReleasedEvent, OnUserScrollFinished, RoutingStrategies.Tunnel);
+        PreviewScrollViewer.AddHandler(Avalonia.Input.InputElement.PointerCaptureLostEvent, OnUserScrollFinished, RoutingStrategies.Tunnel);
         // 大纲序号开关翻动 → [TOC] 条目前缀随同变化：开关写在 ShellOutlineViewModel
         // （容器单例，写入 settingsStore），EditorPreferences 实例收不到通知——
         // 这里直接订阅 Outline VM 属性，值同步到 viewer 属性（属性变更处理器
@@ -193,6 +201,9 @@ public partial class MarkdownPreviewView : UserControl
         PreviewMarkdownViewer.TocEntryClicked += OnTocEntryClicked;
         CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel.OscillatingEntry -= OnOscillatingEntry;
         CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel.OscillatingEntry += OnOscillatingEntry;
+        // 静态事件 + 实例处理器：离树不退订会让旧实例常驻回调（下一实例挂载前双份触发）。
+        DetachedFromVisualTree += (_, _) =>
+            CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel.OscillatingEntry -= OnOscillatingEntry;
         // 阅读位置由库统一按「块序号 + 块内比例」采集与恢复，这里只需把滚动宿主交给 Viewer。
         PreviewMarkdownViewer.ScrollHost = PreviewScrollViewer;
     }
@@ -237,9 +248,6 @@ public partial class MarkdownPreviewView : UserControl
             PreviewMarkdownViewer.RerenderTocBlocks();
         }, DispatcherPriority.Background);
     }
-
-    private static void OnScrollDiagnostics(CodeWF.Avalonia.Markdown.Controls.WindowedStackPanel panel, string line) =>
-        CodeWF.Toolkit.Logging.Logger.Debug("滚动诊断 " + line);
 
     private void OnDisplayMetricsChanged(object? sender, EventArgs args)
     {
@@ -311,25 +319,9 @@ public partial class MarkdownPreviewView : UserControl
         _readingSample = null;
     }
 
-    private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
+    // 阅读位置尾采样：视口上半区逐点命中 → 源码行；无命中退回阅读锚点。武装幂等。
+    private void ArmReadingSampler()
     {
-        if (_navDrivingOffset)
-        {
-            _navDrivingOffset = false;
-        }
-        else if (_outlineNavigation is not null && e.OffsetDelta != default)
-        {
-            // 非导航驱动的视口变更（编辑器光标跟随/恢复阅读位/宿主程序化滚动）：
-            // 作废在途收敛环，否则它会把视口拽回导航目标（AOT 门禁 reading-follow 实锤）。
-            _outlineNavigation.Dispose();
-            _outlineNavigation = null;
-        }
-        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
-        {
-            return;
-        }
-
-        // 尾采样不能被前一次节流丢掉，否则停止滚动后高亮会留在上一章。
         _readingSample ??= DispatcherTimer.RunOnce(() =>
         {
             _readingSample = null;
@@ -349,6 +341,41 @@ public partial class MarkdownPreviewView : UserControl
                 EventBus.Default.Publish(new MarkdownReadingPositionChangedCommand(
                     PreviewMarkdownViewer.CurrentModel.Blocks[anchor.BlockIndex].SyntaxBlock.Line + 1));
         }, TimeSpan.FromMilliseconds(80));
+    }
+
+    // 拖动结束（松开或失捕）：撤牌并补一次尾采样，保证大纲跟随停在落点章节。
+    private void OnUserScrollFinished(object? sender, RoutedEventArgs e)
+    {
+        if (!_userScrolling) return;
+        _userScrolling = false;
+        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true) return;
+        ArmReadingSampler();
+    }
+
+    private void OnPreviewScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (_navDrivingOffset)
+        {
+            _navDrivingOffset = false;
+        }
+        else if (_outlineNavigation is not null && e.OffsetDelta != default)
+        {
+            // 非导航驱动的视口变更（编辑器光标跟随/恢复阅读位/宿主程序化滚动）：
+            // 作废在途收敛环，否则它会把视口拽回导航目标（AOT 门禁 reading-follow 实锤）。
+            _outlineNavigation.Dispose();
+            _outlineNavigation = null;
+        }
+        if (_restoringScrollPosition || _outlineNavigation is not null || _viewModel?.IsPresenting == true)
+        {
+            return;
+        }
+
+        // 尾采样不能被前一次节流丢掉，否则停止滚动后高亮会留在上一章。
+        // 拖动滚动条期间不武装（_userScrolling）：松手时 OnUserScrollFinished 补齐。
+        if (!_userScrolling)
+        {
+            ArmReadingSampler();
+        }
 
         // 采样有节流：长文档下 SaveReadingPosition 需要遍历已渲染块。
         var now = Environment.TickCount64;

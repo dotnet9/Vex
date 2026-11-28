@@ -127,6 +127,18 @@ if (mode == "performance-sweep")
     window.Close();
     return;
 }
+if (mode == "scroll-drag")
+{
+    AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
+        .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+    var app = (VerificationVexApp)Application.Current!;
+    var window = (Vex.Modules.Shell.Views.MainWindow)app.CreateShell();
+    window.Show();
+    ScrollDragProbe.Run(window, (MainWindowViewModel)window.DataContext!, output,
+        args.ElementAtOrDefault(2) ?? ScrollDragSamplePath());
+    window.Close();
+    return;
+}
 if (mode == "presentation-geometry")
 {
     AppBuilder.Configure<VerificationVexApp>().UseSkia().With(VexFonts.Options).UseReactiveUI(_ => { })
@@ -1512,6 +1524,9 @@ void VerifyMediaLayout(Vex.Modules.Shell.Views.MainWindow window, MainWindowView
 // 性能与压力夹具是真实世界的大文档，只存在于跑验证的人自己的机器上。缺文件时报清楚该传什么参数，
 // 别让 File.Open 抛一句看不懂的裸栈——CI 与别人的机器每次都踩在这里。
 string PerformanceSamplePath() => @"D:\github\company\shxskj\S-FlowC\docs\S-FlowC建模调试客户端_RELAP技术实现方案v1.3.md";
+// 滚动条拖拽探针默认用仓库自带的功能示例文档（干净克隆即可复现快拖场景），可被第三参数覆盖。
+string ScrollDragSamplePath([System.Runtime.CompilerServices.CallerFilePath] string callerFile = "") =>
+    Path.GetFullPath(Path.Combine(Path.GetDirectoryName(callerFile)!, "..", "..", "docs", "Markdown功能示例.md"));
 string RequireSample(string? path, string hint) =>
     path is { Length: > 0 } sample && File.Exists(sample) ? sample
         : throw new InvalidOperationException($"Sample document not found: {path}. {hint}");
